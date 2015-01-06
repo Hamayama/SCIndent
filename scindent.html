@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-6 v1.00
+    2015-1-7 v1.01
 -->
 <style type="text/css">
 <!--
@@ -232,7 +232,7 @@ var SCIndent;
 
     // ***** 変換実行 *****
     function convert(src_st1, init_indent1, show_color1, show_paren_no1) {
-        var result = {};
+        var result = {}; // 戻り値
 
         // ***** 戻り値の初期化 *****
         result = {};
@@ -778,7 +778,7 @@ var SCIndent;
 
     // ***** 色コード文字列を作る *****
     function make_color_code(color) {
-        var result_st = "";
+        var result_st;
         result_st = "000000" + color.toString(16);
         result_st = "#" + result_st.substring(result_st.length - 6);
         return result_st;
@@ -823,7 +823,7 @@ initial indent : <input type="text" id="init_indent" value="0" style="width: 50p
 <th></th>
 </tr></table>
 <pre><span id="debug_show1"></span></pre>
-<pre><div id="result_show1"></div></pre>
+<pre><span id="result_show1"></span></pre>
 </form>
 
 </body>
