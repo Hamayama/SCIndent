@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-7 v1.01
+    2015-1-7 v1.02
 -->
 <style type="text/css">
 <!--
@@ -664,6 +664,7 @@ var SCIndent;
             // ***** シンボルまたは文字列のとき *****
             if (ch == "|" || ch == "\"") {
                 delim_ch = ch;
+                i--;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
@@ -688,6 +689,7 @@ var SCIndent;
                     }
                 }
                 if (string_start == true) {
+                    i--;
                     while (i < src_st_len) {
                         // ***** 1文字取り出す *****
                         ch = src_st.charAt(i++);
@@ -704,6 +706,7 @@ var SCIndent;
             // ***** 文字集合のとき *****
             if (ch == "#" && ch2 == "[") {
                 i++;
+                i--;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
@@ -719,6 +722,7 @@ var SCIndent;
             // ***** 正規表現のとき *****
             if (ch == "#" && ch2 == "/") {
                 i++;
+                i--;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
