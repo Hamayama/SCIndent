@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-8 v1.04
+    2015-1-8 v1.05
 -->
 <style type="text/css">
 <!--
@@ -222,6 +222,7 @@ var SCIndent;
                        //                               =100:その他)
                        //   token[i].word          単語(文字列)
                        //   token[i].line_start    行頭フラグ(boolean)
+                       //   token[i].line_no       行番号(1オリジン)
                        //   token[i].before_space  前方の空白数
                        //   token[i].paren_no      括弧番号
 
@@ -501,7 +502,7 @@ var SCIndent;
         var src_st_len;   // ソースの長さ
         var ch, ch2;      // 文字
         var line_start;   // 行頭フラグ(boolean)
-        var line_no;      // 行番号
+        var line_no;      // 行番号(1オリジン)
         var before_space; // 前方の空白数
         var uvector_mode; // ユニフォームベクタ解析モード
         var comment_nest; // 複数行コメントのネスト数
@@ -758,6 +759,7 @@ var SCIndent;
     function make_space(count) {
         var add_st = " ";
         var result_st = "";
+        if (count <= 0) { return result_st; }
         while (true) {
             if (count & 1) { result_st += add_st; }
             count >>= 1;
