@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-8 v1.06
+    2015-1-8 v1.07
 -->
 <style type="text/css">
 <!--
@@ -361,7 +361,8 @@ var SCIndent;
                               //   pr.column_base  開き括弧位置の文字数
                               //   pr.column_now   現在行の文字数
                               //   pr.indent_now   現在行のインデント
-                              //   pr.keyword_val  構文キーワードの値
+                              //   pr.keyword_val  構文キーワードの値(=-1:キーワードなし,
+                              //                                      =0～:構文のbodyの前の引数の数)
         var paren_stack = []; // 括弧情報のスタック(配列)
         var paren_no;         // 括弧番号(1オリジン)
 
@@ -373,7 +374,7 @@ var SCIndent;
         pr.column_base = 0;
         pr.column_now = 0;
         pr.indent_now = init_indent;
-        pr.keyword_val = 0;
+        pr.keyword_val = -1;
         paren_no = 1;
         token_length = token.length;
         for (i = 0; i < token_length; i++) {
@@ -447,7 +448,7 @@ var SCIndent;
                     wd = token[pr.i].word;
                     wd = wd.substring(wd.length - 1);
                     wd2 = token[i].word;
-                    if ((wd == "(" &&  wd2 != ")") || (wd == "[" &&  wd2 != "]")) {
+                    if (!((wd == "(" && wd2 == ")") || (wd == "[" && wd2 == "]"))) {
                         token[i].paren_no = 0;
                         break;
                     }
@@ -466,7 +467,7 @@ var SCIndent;
                 case 100:
                     // ***** 括弧モードの更新 *****
                     if (pr.paren_mode > 0) { pr.paren_mode++; }
-                    // ***** 開き括弧後の先頭の要素が構文キーワードだったとき *****
+                    // ***** 開き括弧後の先頭の要素が構文キーワードのとき *****
                     if (pr.paren_mode == 2 && hasOwn.call(keyword_table, token[i].word)) {
                         pr.keyword_val = keyword_table[token[i].word];
                     }
