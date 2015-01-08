@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-8 v1.05
+    2015-1-8 v1.06
 -->
 <style type="text/css">
 <!--
@@ -341,56 +341,76 @@ var SCIndent;
         html_st = arr_st.join("");
 
         // ***** デバッグ表示 *****
-        // for (i = 0; i < token.length; i++) {
-        //     DebugShow(JSON.stringify(token[i]) + "\n");
-        // }
+        if (0) {
+            for (i = 0; i < token.length; i++) {
+                DebugShow(JSON.stringify(token[i]) + "\n");
+            }
+        }
     }
 
     // ***** インデント変換 *****
     function make_indent() {
-        var i, j;
+        var i;
         var wd, wd2;          // 単語
         var token_length;     // トークン数
         var column_now;       // 現在行の文字数
-        var indent_now;       // 現在行のインデント
-        var paren_mode = 0;   // 括弧モード(=0:初期状態,=1:開き括弧,=2～:開き括弧後の要素があるごとに加算)
         var pr = {};          // 括弧情報
                               //   pr.i            トークン位置
-                              //   pr.paren_mode   括弧モード 保存用
-                              //   pr.column_now   現在行の文字数 保存用
-                              //   pr.indent_now   現在行のインデント 保存用
+                              //   pr.paren_mode   括弧モード(=0:初期状態,=1:開き括弧,
+                              //                              =2～:開き括弧後の要素があるごとに加算)
+                              //   pr.column_base  開き括弧位置の文字数
+                              //   pr.column_now   現在行の文字数
+                              //   pr.indent_now   現在行のインデント
                               //   pr.keyword_val  構文キーワードの値
         var paren_stack = []; // 括弧情報のスタック(配列)
         var paren_no;         // 括弧番号(1オリジン)
 
         // ***** インデント変換 *****
         column_now = 0;
-        indent_now = init_indent;
+        pr = {};
+        pr.i = 0;
+        pr.paren_mode = 0;
+        pr.column_base = 0;
+        pr.column_now = 0;
+        pr.indent_now = init_indent;
+        pr.keyword_val = 0;
         paren_no = 1;
-        paren_mode = 0;
         token_length = token.length;
         for (i = 0; i < token_length; i++) {
 
-           // ***** インデントの設定と文字数の加算 *****
+            // ***** インデントの設定と文字数の計算 *****
+            // ***** 行頭のとき *****
             if (token[i].line_start) {
-                // ***** 行頭のとき *****
-                if (token[i].kind != 52) { // 複数行コメントのときはインデントを変更しない
+                // ***** 複数行コメント以外のとき *****
+                if (token[i].kind != 52) {
                     // ***** インデントを設定 *****
-                    token[i].before_space = indent_now;
+                    token[i].before_space = pr.indent_now;
                 }
+                // ***** 文字数を計算 *****
                 column_now = token[i].before_space;
-            } else {
+                pr.column_now = column_now;
+                // ***** 改行のとき *****
                 if (token[i].kind == 0) {
-                    // ***** 開き括弧の直後に改行のとき *****
-                    if (paren_mode == 1) {
-                        j = paren_stack.length - 1;
-                        column_now += token[paren_stack[j].i].word.length;
+                    // ***** インデントをクリア *****
+                    token[i].before_space = 0;
+                }
+            // ***** 行頭でないとき *****
+            } else {
+                // ***** 改行のとき *****
+                if (token[i].kind == 0) {
+                    // ***** 開き括弧の直後のとき *****
+                    if (pr.paren_mode == 1) {
+                        // ***** 文字数を加算 *****
+                        column_now += token[pr.i].word.length;
+                        pr.column_now = column_now;
                     }
+                // ***** コメントのとき *****
                 } else if (token[i].kind >= 51 && token[i].kind <= 52) {
-                    // ***** コメントのとき *****
+                // ***** その他のとき *****
                 } else {
-                    // ***** その他のとき *****
+                    // ***** 文字数を加算 *****
                     column_now += token[i].before_space + token[i - 1].word.length;
+                    pr.column_now = column_now;
                 }
             }
 
@@ -402,43 +422,38 @@ var SCIndent;
                     break;
                 // ***** 開き括弧のとき *****
                 case 1:
-                    // ***** 括弧情報の登録 *****
+                    // ***** 括弧モードの更新 *****
+                    if (pr.paren_mode > 0) { pr.paren_mode++; }
+                    // ***** 括弧情報の追加 *****
+                    paren_stack.push(pr);
                     pr = {};
                     pr.i = i;
-                    pr.paren_mode = paren_mode;
+                    pr.paren_mode = 1;
+                    pr.column_base = column_now;
                     pr.column_now = column_now;
-                    pr.indent_now = indent_now;
+                    pr.indent_now = column_now;
                     pr.keyword_val = -1;
-                    paren_stack.push(pr);
                     // ***** 括弧番号の設定 *****
                     token[i].paren_no = paren_no;
                     paren_no++;
-                    // ***** 括弧モードの更新 *****
-                    paren_mode = 1;
                     break;
                 // ***** 閉じ括弧のとき *****
                 case 2:
                     // ***** 対応する開き括弧のチェック *****
-                    if (paren_stack.length <= 0) {
+                    if (pr.paren_mode == 0) {
                         token[i].paren_no = 0;
                         break;
                     }
-                    j = paren_stack.length - 1;
-                    wd = token[paren_stack[j].i].word;
+                    wd = token[pr.i].word;
                     wd = wd.substring(wd.length - 1);
                     wd2 = token[i].word;
                     if ((wd == "(" &&  wd2 != ")") || (wd == "[" &&  wd2 != "]")) {
                         token[i].paren_no = 0;
                         break;
                     }
-                    token[i].paren_no = token[paren_stack[j].i].paren_no;
-                    // ***** 括弧情報の破棄 *****
-                    paren_mode = paren_stack[j].paren_mode;
-                    column_now = paren_stack[j].column_now;
-                    indent_now = paren_stack[j].indent_now;
-                    paren_stack.pop();
-                    // ***** 括弧モードの更新 *****
-                    if (paren_mode > 0) { paren_mode++; }
+                    token[i].paren_no = token[pr.i].paren_no;
+                    // ***** 括弧情報の削除 *****
+                    pr = paren_stack.pop();
                     break;
                 // ***** クォート類またはS式コメントまたはデバッグマクロのとき *****
                 case 3:
@@ -450,44 +465,39 @@ var SCIndent;
                 // ***** その他のとき *****
                 case 100:
                     // ***** 括弧モードの更新 *****
-                    if (paren_mode > 0) { paren_mode++; }
+                    if (pr.paren_mode > 0) { pr.paren_mode++; }
                     // ***** 開き括弧後の先頭の要素が構文キーワードだったとき *****
-                    if (paren_mode == 2 && hasOwn.call(keyword_table, token[i].word)) {
-                        j = paren_stack.length - 1;
-                        paren_stack[j].keyword_val = keyword_table[token[i].word];
+                    if (pr.paren_mode == 2 && hasOwn.call(keyword_table, token[i].word)) {
+                        pr.keyword_val = keyword_table[token[i].word];
                     }
                     break;
             }
 
             // ***** インデントの計算 *****
-            if (paren_mode == 0) {
-                // ***** 初期状態のとき *****
-                indent_now = init_indent;
-            } else {
-                j = paren_stack.length - 1;
-                if (token[paren_stack[j].i].word.length == 1) {
-                    // ***** リストの開き括弧のとき *****
-                    if (paren_stack[j].keyword_val >= 0) {
-                        // ***** 構文キーワードのとき *****
-                        if (paren_mode <= paren_stack[j].keyword_val + 1) {
-                            // ***** 構文の引数のとき *****
-                            indent_now = paren_stack[j].column_now + tab_size * 2;
+            if (pr.paren_mode > 0) {
+                // ***** リストの開き括弧のとき *****
+                if (token[pr.i].word.length == 1) {
+                    // ***** 構文キーワードのとき *****
+                    if (pr.keyword_val >= 0) {
+                        // ***** 構文の引数のとき *****
+                        if (pr.paren_mode < pr.keyword_val + 2) {
+                            pr.indent_now = pr.column_base + tab_size * 2;
+                        // ***** 構文のbodyのとき *****
                         } else {
-                            // ***** 構文のbodyのとき *****
-                            indent_now = paren_stack[j].column_now + tab_size;
+                            pr.indent_now = pr.column_base + tab_size;
                         }
+                    // ***** 構文キーワードでないとき *****
                     } else {
-                        // ***** 構文キーワードでないとき *****
-                        if (paren_mode <= 3) {
-                            // ***** 開き括弧後から2番目の要素までのとき *****
-                            indent_now = column_now;
+                        // ***** 開き括弧後から2番目の要素までのとき *****
+                        if (pr.paren_mode <= 3) {
+                            pr.indent_now = pr.column_now;
                         }
                     }
+                // ***** ベクタまたはクォートの開き括弧のとき *****
                 } else {
-                    // ***** ベクタまたはクォートの開き括弧のとき *****
-                    if (paren_mode <= 2) {
-                        // ***** 開き括弧後から先頭の要素までのとき *****
-                        indent_now = column_now;
+                    // ***** 開き括弧後から先頭の要素までのとき *****
+                    if (pr.paren_mode <= 2) {
+                        pr.indent_now = pr.column_now;
                     }
                 }
             }
