@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-7 v1.02
+    2015-1-8 v1.03
 -->
 <style type="text/css">
 <!--
@@ -102,13 +102,13 @@ function clear_button() {
 // 公開I/F :
 //
 //   SCIndent.convert(src_st, init_indent, show_color, show_paren_no)  変換実行
-//     src_st         ソース
-//     init_indent    初期インデント
-//     show_color     色表示フラグ
-//     show_paren_no  括弧番号表示フラグ
+//     src_st         ソース(文字列)
+//     init_indent    初期インデント(0-200)
+//     show_color     色表示フラグ(boolean)
+//     show_paren_no  括弧番号表示フラグ(boolean)
 //     戻り値         結果オブジェクト
-//                      result.out  出力
-//                      result.html HTML出力
+//                      result.out   テキスト出力(文字列)
+//                      result.html  HTML出力(文字列)
 //
 var SCIndent;
 (function (SCIndent) {
@@ -127,6 +127,7 @@ var SCIndent;
         "let":1,
         "let*":1,
         "letrec":1,
+        "letrec*":1,
         "sequence":0,
         "syntax-case":2,
         "library":1,
@@ -212,7 +213,7 @@ var SCIndent;
     var init_indent;   // 初期インデント(0-200)
     var show_color;    // 色表示フラグ(boolean)
     var show_paren_no; // 括弧番号表示フラグ(boolean)
-    var out_st;        // 出力(文字列)
+    var out_st;        // テキスト出力(文字列)
     var html_st;       // HTML出力(文字列)
     var token = [];    // トークン(配列)
                        //   token[i].kind          種別(=0:改行,=1:開き括弧,=2:閉じ括弧,
@@ -274,12 +275,11 @@ var SCIndent;
     // ***** 出力の生成 *****
     function make_output() {
         var i;
-        var wd;               // 単語
         var token_length;     // トークン数
         var arr_st = [];      // 文字列の配列
         var span_open_count;  // 閉じていないspanタグの数
 
-        // ***** 出力の生成 *****
+        // ***** テキスト出力の生成 *****
         out_st = "";
         arr_st = [];
         token_length = token.length;
@@ -301,24 +301,23 @@ var SCIndent;
             if (show_color) {
                 // ***** 開き括弧のとき *****
                 if (token[i].kind == 1) {
-                    arr_st.push("<span style='color: " + make_color_code(color_table[(token[i].paren_no + 2) % color_table.length]) + "'>");
+                    arr_st.push("<span style='color: " +
+                        make_color_code(color_table[(token[i].paren_no + 2) % color_table.length]) + ";'>");
                     span_open_count++;
                 }
                 // ***** 閉じ括弧が多すぎるとき *****
                 if (token[i].kind == 2 && token[i].paren_no == 0) {
-                    arr_st.push("<span style='color: " + make_color_code(error_color) + "'>");
+                    arr_st.push("<span style='color: " + make_color_code(error_color) + ";'>");
                     span_open_count++;
                 }
                 // ***** コメントのとき *****
                 if (token[i].kind >= 51 && token[i].kind <= 52) {
-                    arr_st.push("<span style='color: " + make_color_code(comment_color) + "'>");
+                    arr_st.push("<span style='color: " + make_color_code(comment_color) + ";'>");
                     span_open_count++;
                 }
             }
             // ***** 単語をサニタイズ(タグ無効化)してから追加 *****
-            wd = token[i].word;
-            wd = wd.replace(/&/g, "&amp;").replace(/[<]/g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-            arr_st.push(wd);
+            arr_st.push(escape_html(token[i].word));
             // ***** 括弧番号を追加 *****
             if (show_paren_no) {
                 if (token[i].kind == 1 || token[i].kind == 2) {
@@ -786,6 +785,16 @@ var SCIndent;
         result_st = "000000" + color.toString(16);
         result_st = "#" + result_st.substring(result_st.length - 6);
         return result_st;
+    }
+
+    // ***** HTML文字列のエスケープ処理 *****
+    function escape_html(html_st) {
+        html_st = html_st.replace(/&/g,   "&amp;");
+        html_st = html_st.replace(/[<]/g, "&lt;");
+        html_st = html_st.replace(/>/g,   "&gt;");
+        html_st = html_st.replace(/"/g,   "&quot;");
+        html_st = html_st.replace(/'/g,   "&#39;");
+        return html_st;
     }
 
     // ***** 数値チェック *****
