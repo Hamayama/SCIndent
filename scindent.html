@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-8 v1.03
+    2015-1-8 v1.04
 -->
 <style type="text/css">
 <!--
@@ -600,6 +600,7 @@ var SCIndent;
                 continue;
             }
             // ***** クォート類またはS式コメントのとき *****
+            // (S式コメントは読み飛ばすだけで未対応(コメント扱いにならない))
             if (ch == "'" || ch == "`" || ch == "," || (ch == "#" && ch2 == ";")) {
                 if ((ch == "," && ch2 == "@") || (ch == "#" && ch2 == ";")) { i++; }
                 token_push(3, src_st.substring(i_start, i), line_start, line_no, before_space);
@@ -702,8 +703,9 @@ var SCIndent;
                 before_space = 0;
                 continue;
             }
-            // ***** 文字集合のとき *****
-            if (ch == "#" && ch2 == "[") {
+            // ***** 文字集合または正規表現のとき *****
+            if (ch == "#" && (ch2 == "[" || ch2 == "/")) {
+                if (ch2 == "[") { delim_ch = "]"; } else { delim_ch = "/"; }
                 i++;
                 i--;
                 while (i < src_st_len) {
@@ -711,25 +713,10 @@ var SCIndent;
                     ch = src_st.charAt(i++);
                     if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
                     // ***** デリミタのとき *****
-                    if (ch != "\\" && ch2 == "]") { i++; break; }
-                }
-                token_push(100, src_st.substring(i_start, i), line_start, line_no, before_space);
-                line_start = false;
-                before_space = 0;
-                continue;
-            }
-            // ***** 正規表現のとき *****
-            if (ch == "#" && ch2 == "/") {
-                i++;
-                i--;
-                while (i < src_st_len) {
-                    // ***** 1文字取り出す *****
-                    ch = src_st.charAt(i++);
-                    if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
-                    // ***** デリミタのとき *****
-                    if (ch != "\\" && ch2 == "/") {
+                    if (ch != "\\" && ch2 == delim_ch) {
                         i++;
-                        if (src_st.charAt(i) == "i") { i++; }
+                        // ***** 正規表現で末尾にiがあるとき *****
+                        if (delim_ch == "/" && src_st.charAt(i) == "i") { i++; }
                         break;
                     }
                 }
@@ -789,12 +776,12 @@ var SCIndent;
 
     // ***** HTML文字列のエスケープ処理 *****
     function escape_html(html_st) {
-        html_st = html_st.replace(/&/g,   "&amp;");
-        html_st = html_st.replace(/[<]/g, "&lt;");
-        html_st = html_st.replace(/>/g,   "&gt;");
-        html_st = html_st.replace(/"/g,   "&quot;");
-        html_st = html_st.replace(/'/g,   "&#39;");
-        return html_st;
+        return html_st
+            .replace(/&/g,   "&amp;")
+            .replace(/[<]/g, "&lt;")
+            .replace(/>/g,   "&gt;")
+            .replace(/"/g,   "&quot;")
+            .replace(/'/g,   "&#39;");
     }
 
     // ***** 数値チェック *****
