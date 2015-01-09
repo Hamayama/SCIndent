@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-9 v1.08
+    2015-1-9 v1.09
 -->
 <style type="text/css">
 <!--
@@ -278,9 +278,9 @@ var SCIndent;
     // ***** 出力の生成 *****
     function make_output() {
         var i;
-        var token_length;     // トークン数
-        var arr_st = [];      // 文字列の配列
-        var span_open_count;  // 閉じていないspanタグの数
+        var token_length;    // トークン数
+        var arr_st = [];     // 文字列の配列
+        var span_open_count; // 閉じていないspanタグの数
 
         // ***** テキスト出力の生成 *****
         out_st = "";
@@ -477,10 +477,11 @@ var SCIndent;
             }
 
             // ***** インデントの計算 *****
+            // ***** 開き括弧後のとき *****
             if (pr.paren_mode > 0) {
                 // ***** リストの開き括弧のとき *****
                 if (token[pr.i].word.length == 1) {
-                    // ***** 構文キーワードのとき *****
+                    // ***** 構文キーワードありのとき *****
                     if (pr.keyword_val >= 0) {
                         // ***** 構文の引数のとき *****
                         if (pr.paren_mode < pr.keyword_val + 2) {
@@ -489,7 +490,7 @@ var SCIndent;
                         } else {
                             pr.indent_now = pr.column_base + tab_size;
                         }
-                    // ***** 構文キーワードでないとき *****
+                    // ***** 構文キーワードなしのとき *****
                     } else {
                         // ***** 開き括弧後から2番目の要素までのとき *****
                         if (pr.paren_mode <= 3) {
