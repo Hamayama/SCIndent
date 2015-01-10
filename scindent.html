@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-10 v1.14
+    2015-1-10 v1.15
 -->
 <style type="text/css">
 <!--
@@ -219,7 +219,7 @@ var SCIndent;
     var html_st;       // HTML出力(文字列)
     var token = [];    // トークン(配列)
                        //   token[i].kind          種別(=0:改行,=1:開き括弧,=2:閉じ括弧,
-                       //                               =3:クォート類またはS式コメントまたはデバッグマクロ,
+                       //                               =3:クォート等の要素の前につく記号,
                        //                               =51:1行コメント,=52:複数行コメント,
                        //                               =100:その他)
                        //   token[i].word          単語(文字列)
@@ -457,7 +457,7 @@ var SCIndent;
                     // ***** 括弧情報の削除 *****
                     pr = paren_stack.pop();
                     break;
-                // ***** クォート類またはS式コメントまたはデバッグマクロのとき *****
+                // ***** クォート等の要素の前につく記号のとき *****
                 case 3:
                     // ***** 括弧モードの更新 *****
                     if (pr.paren_mode > 0 && !pr.quote_flag) { pr.paren_mode++; }
@@ -621,10 +621,18 @@ var SCIndent;
                 before_space = 0;
                 continue;
             }
-            // ***** クォート類またはS式コメントのとき *****
+            // ***** クォート等のとき *****
+            if (ch == "'" || ch == "`" || ch == ",") {
+                if (ch == "," && ch2 == "@") { i++; }
+                token_push(3, src_st.substring(i_start, i), line_start, line_no, before_space);
+                line_start = false;
+                before_space = 0;
+                continue;
+            }
+            // ***** S式コメントまたはアンインターンドシンボルのとき *****
             // (S式コメントは読み飛ばすだけで未対応(コメント扱いにならない))
-            if (ch == "'" || ch == "`" || ch == "," || (ch == "#" && ch2 == ";")) {
-                if ((ch == "," && ch2 == "@") || (ch == "#" && ch2 == ";")) { i++; }
+            if ((ch == "#" && ch2 == ";") || (ch == "#" && ch2 == ":")) {
+                i++;
                 token_push(3, src_st.substring(i_start, i), line_start, line_no, before_space);
                 line_start = false;
                 before_space = 0;
