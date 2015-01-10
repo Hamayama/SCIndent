@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-9 v1.10
+    2015-1-10 v1.11
 -->
 <style type="text/css">
 <!--
@@ -382,6 +382,7 @@ var SCIndent;
         pr.keyword_val = -1;
         pr.quote_flag = false;
         pr.paren_last = 0;
+        paren_stack = [];
         paren_no = 1;
         token_length = token.length;
         for (i = 0; i < token_length; i++) {
@@ -402,11 +403,11 @@ var SCIndent;
                     // ***** インデントをクリア *****
                     token[i].before_space = 0;
                 }
-            // ***** 行頭でないとき *****
+            // ***** 行頭以外のとき *****
             } else {
                 // ***** 改行とコメント以外のとき *****
                 if (!((token[i].kind == 0) || (token[i].kind >= 51 && token[i].kind <= 52))) {
-                    // ***** 文字数を加算 *****
+                    // ***** 文字数を計算 *****
                     column_now += token[i].before_space + token[i - 1].word.length;
                     pr.column_now = column_now;
                 }
