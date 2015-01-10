@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-10 v1.11
+    2015-1-10 v1.12
 -->
 <style type="text/css">
 <!--
@@ -608,11 +608,10 @@ var SCIndent;
                     before_space = 0;
                     continue;
                 }
-                // ***** その他のとき(#fかもしれない) *****
-                token_push(100, src_st.substring(i_start, i), line_start, line_no, before_space);
-                line_start = false;
-                before_space = 0;
-                continue;
+                // ***** その他のとき(#fや#falseかもしれない) *****
+                ch = "";
+                ch2 = "";
+                // (そのまま下におりてデリミタまでを登録)
             }
             // ***** クォートの開き括弧のとき *****
             if (ch == "'" && ch2 == "(") {
@@ -642,10 +641,9 @@ var SCIndent;
                     continue;
                 }
                 // ***** その他のとき *****
-                token_push(100, src_st.substring(i_start, i), line_start, line_no, before_space);
-                line_start = false;
-                before_space = 0;
-                continue;
+                ch = "";
+                ch2 = "";
+                // (そのまま下におりてデリミタまでを登録)
             }
             // ***** 1行コメントのとき *****
             if (ch == ";" || (ch == "#" && ch2 == "!")) {
@@ -720,11 +718,15 @@ var SCIndent;
                         // ***** デリミタのとき *****
                         if (ch != "\\" && ch2 == "\"") { i++; break; }
                     }
+                    token_push(100, src_st.substring(i_start, i), line_start, line_no, before_space);
+                    line_start = false;
+                    before_space = 0;
+                    continue;
                 }
-                token_push(100, src_st.substring(i_start, i), line_start, line_no, before_space);
-                line_start = false;
-                before_space = 0;
-                continue;
+                // ***** その他のとき *****
+                ch = "";
+                ch2 = "";
+                // (そのまま下におりてデリミタまでを登録)
             }
             // ***** 文字集合または正規表現のとき *****
             if (ch == "#" && (ch2 == "[" || ch2 == "/")) {
@@ -747,6 +749,28 @@ var SCIndent;
                 line_start = false;
                 before_space = 0;
                 continue;
+            }
+            // ***** 文字リテラルのとき *****
+            if (ch == "#" && ch2 == "\\") {
+                i++;
+                if (i < src_st_len) {
+                    // ***** 1文字取り出す *****
+                    ch = src_st.charAt(i);
+                    // ***** 記号文字のとき *****
+                    if (ch == "("  || ch == ")"  || ch == "["  || ch == "]"  ||
+                        ch == "{"  || ch == "}"  || ch == "\\" || ch == "|"  ||
+                        ch == ";"  || ch == "#") {
+                        i++;
+                        token_push(100, src_st.substring(i_start, i), line_start, line_no, before_space);
+                        line_start = false;
+                        before_space = 0;
+                        continue;
+                    }
+                }
+                // ***** その他のとき *****
+                ch = "";
+                ch2 = "";
+                // (そのまま下におりてデリミタまでを登録)
             }
             // ***** その他のとき *****
             while (i < src_st_len) {
