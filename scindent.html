@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-11 v1.17
+    2015-1-11 v1.18
 -->
 <style type="text/css">
 <!--
@@ -233,12 +233,14 @@ var SCIndent;
                        //   token[i].kind          種別(=0:改行,=1:開き括弧,=2:閉じ括弧,
                        //                               =3:クォート等の要素の前につく記号,
                        //                               =51:1行コメント,=52:複数行コメント,
+                       //                               =53:S式コメント,
                        //                               =100:その他)
                        //   token[i].word          単語(文字列)
                        //   token[i].line_start    行頭フラグ(boolean)
                        //   token[i].line_no       行番号(1オリジン)
                        //   token[i].before_space  前方の空白数
                        //   token[i].paren_no      括弧番号
+                       //   token[i].scmt_end      S式コメント終了フラグ(boolean)
 
     // ***** hasOwnPropertyをプロパティ名に使うかもしれない場合の対策 *****
     // (obj.hasOwnProperty(prop) を hasOwn.call(obj, prop) に置換した)
@@ -293,6 +295,7 @@ var SCIndent;
         var token_length;    // トークン数
         var arr_st = [];     // 文字列の配列
         var span_open_count; // 閉じていないspanタグの数
+        var scmt_count;      // S式コメントカウンタ
 
         // ***** テキスト出力の生成 *****
         out_st = "";
@@ -308,6 +311,7 @@ var SCIndent;
         html_st = "";
         arr_st = [];
         span_open_count = 0;
+        scmt_count = 0;
         token_length = token.length;
         for (i = 0; i < token_length; i++) {
             // ***** 前方の空白を追加 *****
@@ -315,20 +319,19 @@ var SCIndent;
             // ***** 色設定を追加 *****
             if (show_color) {
                 // ***** 開き括弧のとき *****
-                if (token[i].kind == 1) {
+                if (token[i].kind == 1 && scmt_count <= 0) {
                     arr_st.push("<span style='color: " +
                         make_color_code(color_table[(token[i].paren_no + 2) % color_table.length]) + ";'>");
                     span_open_count++;
-                }
                 // ***** 閉じ括弧が多すぎるとき *****
-                if (token[i].kind == 2 && token[i].paren_no == 0) {
+                } else if (token[i].kind == 2 && token[i].paren_no == 0) {
                     arr_st.push("<span style='color: " + make_color_code(error_color) + ";'>");
                     span_open_count++;
-                }
                 // ***** コメントのとき *****
-                if (token[i].kind >= 51 && token[i].kind <= 52) {
+                } else if (token[i].kind >= 51 && token[i].kind <= 53) {
                     arr_st.push("<span style='color: " + make_color_code(comment_color) + ";'>");
                     span_open_count++;
+                    if (token[i].kind == 53) { scmt_count++; }
                 }
             }
             // ***** 単語をサニタイズ(タグ無効化)してから追加 *****
@@ -341,10 +344,23 @@ var SCIndent;
             }
             // ***** 色設定の終了タグを追加 *****
             if (show_color) {
-                // ***** 閉じ括弧かコメントのとき *****
-                if (token[i].kind == 2 || (token[i].kind >= 51 && token[i].kind <= 52)) {
+                // ***** 閉じ括弧のとき *****
+                if (token[i].kind == 2 && scmt_count <= 0) {
                     arr_st.push("<\/span>");
                     span_open_count--;
+                // ***** 閉じ括弧が多すぎるとき *****
+                } else if (token[i].kind == 2 && token[i].paren_no == 0) {
+                    arr_st.push("<\/span>");
+                    span_open_count--;
+                // ***** 1行コメントまたは複数行コメントのとき *****
+                } else if (token[i].kind >= 51 && token[i].kind <= 52) {
+                    arr_st.push("<\/span>");
+                    span_open_count--;
+                // ***** S式コメント終了のとき *****
+                } else if (token[i].scmt_end) {
+                    arr_st.push("<\/span>");
+                    span_open_count--;
+                    scmt_count--;
                 }
             }
         }
@@ -381,6 +397,7 @@ var SCIndent;
                               //                                      =-2:特殊)
                               //   pr.quote_flag   クォートフラグ(boolean)
                               //   pr.paren_last   括弧モードの処理済みチェック用
+                              //   pr.scmt_count   S式コメントカウンタ
                               //
         var paren_stack = []; // 括弧情報のスタック(配列)
         var paren_no;         // 括弧番号(1オリジン)
@@ -396,6 +413,7 @@ var SCIndent;
         pr.keyword_val = -1;
         pr.quote_flag = false;
         pr.paren_last = 0;
+        pr.scmt_count = 0;
         paren_stack = [];
         paren_no = 1;
         token_length = token.length;
@@ -444,6 +462,7 @@ var SCIndent;
                 case 1:
                     // ***** 括弧モードの更新 *****
                     if (pr.paren_mode > 0 && !pr.quote_flag) { pr.paren_mode++; }
+                    // ***** クォートフラグOFF *****
                     pr.quote_flag = false;
                     // ***** 括弧情報の追加 *****
                     paren_stack.push(pr);
@@ -456,6 +475,7 @@ var SCIndent;
                     pr.keyword_val = -1;
                     pr.quote_flag = false;
                     pr.paren_last = 0;
+                    pr.scmt_count = 0;
                     // ***** 括弧番号の設定 *****
                     token[i].paren_no = paren_no;
                     paren_no++;
@@ -477,22 +497,41 @@ var SCIndent;
                     token[i].paren_no = token[pr.i].paren_no;
                     // ***** 括弧情報の削除 *****
                     pr = paren_stack.pop();
+                    // ***** S式コメントの終了 *****
+                    if (pr.scmt_count > 0) {
+                        pr.scmt_count--;
+                        token[i].scmt_end = true;
+                    }
                     break;
                 // ***** クォート等の要素の前につく記号のとき *****
                 case 3:
                     // ***** 括弧モードの更新 *****
                     if (pr.paren_mode > 0 && !pr.quote_flag) { pr.paren_mode++; }
+                    // ***** クォートフラグON *****
                     pr.quote_flag = true;
                     break;
-                // ***** コメントのとき *****
+                // ***** 1行コメントまたは複数行コメントのとき *****
                 case 51:
                 case 52:
+                    break;
+                // ***** S式コメントのとき *****
+                case 53:
+                    // ***** S式コメントの開始 *****
+                    pr.scmt_count++;
+                    // ***** クォートフラグON *****
+                    pr.quote_flag = true;
                     break;
                 // ***** その他のとき *****
                 case 100:
                     // ***** 括弧モードの更新 *****
                     if (pr.paren_mode > 0 && !pr.quote_flag) { pr.paren_mode++; }
+                    // ***** クォートフラグOFF *****
                     pr.quote_flag = false;
+                    // ***** S式コメントの終了 *****
+                    if (pr.scmt_count > 0) {
+                        pr.scmt_count--;
+                        token[i].scmt_end = true;
+                    }
                     // ***** 開き括弧後の先頭の要素のとき *****
                     if (pr.paren_mode == 2) {
                         // ***** 構文キーワードのとき *****
@@ -671,9 +710,8 @@ var SCIndent;
                 before_space = 0;
                 continue;
             }
-            // ***** S式コメントまたはアンインターンドシンボルのとき *****
-            // (S式コメントは読み飛ばすだけで未対応(コメント扱いにならない))
-            if ((ch == "#" && ch2 == ";") || (ch == "#" && ch2 == ":")) {
+            // ***** アンインターンドシンボルのとき *****
+            if (ch == "#" && ch2 == ":") {
                 i++;
                 token_push(3, src_st.substring(i_start, i), line_start, line_no, before_space);
                 line_start = false;
@@ -728,6 +766,14 @@ var SCIndent;
                     }
                 }
                 token_push(52, src_st.substring(i_start, i), line_start, line_no, before_space);
+                line_start = false;
+                before_space = 0;
+                continue;
+            }
+            // ***** S式コメントのとき *****
+            if (ch == "#" && ch2 == ";") {
+                i++;
+                token_push(53, src_st.substring(i_start, i), line_start, line_no, before_space);
                 line_start = false;
                 before_space = 0;
                 continue;
@@ -848,6 +894,7 @@ var SCIndent;
         tk.line_no = line_no;
         tk.before_space = before_space;
         tk.paren_no = 0;
+        tk.scmt_end = false;
         token.push(tk);
     }
 
