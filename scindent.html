@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-10 v1.15
+    2015-1-11 v1.16
 -->
 <style type="text/css">
 <!--
@@ -116,15 +116,17 @@ var SCIndent;
     var tab_size = 2;      // タブ幅
     var tab_char_size = 4; // タブ文字幅
     var keyword_table = {  // 構文キーワード(値は構文のbodyの前の引数の数)
-        "begin":0,
+        "begin":-2,
         "case":1,
-        "define":0,
-        "define-library":0,
-        "define-syntax":0,
-        "define-values":0,
+        // (defineで始まるものは無条件にキーワードとする)
+        // "define":0,
+        // "define-library":0,
+        // "define-record-type":0,
+        // "define-syntax":0,
+        // "define-values":0,
         "delay":0,
         "do":2,
-        "export":0,
+        "export":-2,
         "if":1,
         "lambda":1,
         "let":1,
@@ -135,14 +137,24 @@ var SCIndent;
         "syntax-case":2,
         "with-input-from-file":1,
         "with-output-to-file":1,
+
         // Gauche (追加分)
-        "define-macro":0,
-        "define-module":0,
+        // (defineで始まるものは無条件にキーワードとする)
+        // "define-class":0,
+        // "define-condition-type":0,
+        // "define-constant":0,
+        // "define-dict-interface":0,
+        // "define-in-module":0,
+        // "define-macro":0,
+        // "define-method":0,
+        // "define-module":0,
+        // "define-reader-ctor":0,
         "glet1":2,
         "hash-table":0,
         "if-let1":2,
         "match-let1":2,
         "rlet1":2,
+
         // Gauche (http://karetta.jp/book-node/gauche-hacks/004682)
         "and-let*":1,
         "begin0":0,
@@ -364,7 +376,8 @@ var SCIndent;
                               //   pr.column_now   現在行の文字数
                               //   pr.indent_now   現在行のインデント
                               //   pr.keyword_val  構文キーワードの値(=-1:キーワードなし,
-                              //                                      =0～:構文のbodyの前の引数の数)
+                              //                                      =0～:構文のbodyの前の引数の数
+                              //                                      =-2:特殊)
                               //   pr.quote_flag   クォートフラグ(boolean)
                               //   pr.paren_last   括弧モードの処理済みチェック用
                               //
@@ -472,9 +485,17 @@ var SCIndent;
                     // ***** 括弧モードの更新 *****
                     if (pr.paren_mode > 0 && !pr.quote_flag) { pr.paren_mode++; }
                     pr.quote_flag = false;
-                    // ***** 開き括弧後の先頭の要素が構文キーワードのとき *****
-                    if (pr.paren_mode == 2 && hasOwn.call(keyword_table, token[i].word)) {
-                        pr.keyword_val = keyword_table[token[i].word];
+                    // ***** 開き括弧後の先頭の要素のとき *****
+                    if (pr.paren_mode == 2) {
+                        // ***** 構文キーワードのとき *****
+                        wd = token[i].word;
+                        if (hasOwn.call(keyword_table, wd)) {
+                            pr.keyword_val = keyword_table[wd];
+                        }
+                        // ***** defineで始まるものは無条件にキーワードとする *****
+                        if (wd.substring(0, 6) == "define") {
+                            pr.keyword_val = 0;
+                        }
                     }
                     break;
             }
@@ -495,6 +516,19 @@ var SCIndent;
                         // ***** 構文のbodyのとき *****
                         } else {
                             pr.indent_now = pr.column_base + tab_size;
+                        }
+                    // ***** 構文キーワードあり(特殊)のとき *****
+                    } else if (pr.keyword_val == -2) {
+                        // ***** 開き括弧後の先頭の要素のとき *****
+                        if (pr.paren_mode == 2) {
+                            pr.indent_now = pr.column_base + tab_size;
+                        }
+                        // ***** 開き括弧後の2番目の要素のとき *****
+                        if (pr.paren_mode == 3 && pr.paren_last < pr.paren_mode) {
+                            if (!token[i].line_start) {
+                                pr.indent_now = pr.column_now;
+                            }
+                            pr.paren_last = pr.paren_mode;
                         }
                     // ***** 構文キーワードなしのとき *****
                     } else {
