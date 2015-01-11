@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-11 v1.16
+    2015-1-11 v1.17
 -->
 <style type="text/css">
 <!--
@@ -365,6 +365,7 @@ var SCIndent;
     // ***** インデント変換 *****
     function make_indent() {
         var i;
+        var j1, j2, j3;
         var wd, wd2;          // 単語
         var token_length;     // トークン数
         var column_now;       // 現在行の文字数
@@ -418,12 +419,19 @@ var SCIndent;
                 }
             // ***** 行頭以外のとき *****
             } else {
-                // ***** 改行とコメント以外のとき *****
-                if (!((token[i].kind == 0) || (token[i].kind >= 51 && token[i].kind <= 52))) {
-                    // ***** 文字数を計算 *****
-                    column_now += token[i].before_space + token[i - 1].word.length;
-                    pr.column_now = column_now;
+                // ***** 文字数を計算 *****
+                // (リテラル内の改行に対応)
+                wd = token[i - 1].word;
+                j1 = wd.lastIndexOf("\r");
+                j2 = wd.lastIndexOf("\n");
+                j3 = wd.length;
+                if (j1 >= 0 || j2 >= 0) {
+                    if (j1 >= j2) { j3 -= j1 + 1; } else { j3 -= j2 + 1; }
+                    column_now = j3 + token[i].before_space;
+                } else {
+                    column_now += j3 + token[i].before_space;
                 }
+                pr.column_now = column_now;
             }
 
             // ***** トークンの解析 *****
