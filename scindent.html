@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-11 v1.18
+    2015-1-11 v1.19
 -->
 <style type="text/css">
 <!--
@@ -115,7 +115,8 @@ var SCIndent;
     // ***** 定数 *****
     var tab_size = 2;      // タブ幅
     var tab_char_size = 4; // タブ文字幅
-    var keyword_table = {  // 構文キーワード(値は構文のbodyの前の引数の数)
+    var keyword_table = {  // 構文キーワード
+                           //   (値は構文のbodyの前の引数の数(負の数は特殊パターン))
         "begin":-2,
         "case":1,
         // (defineで始まるものは無条件にキーワードとする)
@@ -394,7 +395,7 @@ var SCIndent;
                               //   pr.indent_now   現在行のインデント
                               //   pr.keyword_val  構文キーワードの値(=-1:キーワードなし,
                               //                                      =0～:構文のbodyの前の引数の数
-                              //                                      =-2:特殊)
+                              //                                      =-2:特殊パターン)
                               //   pr.quote_flag   クォートフラグ(boolean)
                               //   pr.paren_last   括弧モードの処理済みチェック用
                               //   pr.scmt_count   S式コメントカウンタ
@@ -564,7 +565,7 @@ var SCIndent;
                         } else {
                             pr.indent_now = pr.column_base + tab_size;
                         }
-                    // ***** 構文キーワードあり(特殊)のとき *****
+                    // ***** 構文キーワードあり(特殊パターン)のとき *****
                     } else if (pr.keyword_val == -2) {
                         // ***** 開き括弧後の先頭の要素のとき *****
                         if (pr.paren_mode == 2) {
