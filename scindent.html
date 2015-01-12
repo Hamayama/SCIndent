@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-12 v1.20
+    2015-1-12 v1.21
 -->
 <style type="text/css">
 <!--
@@ -357,8 +357,9 @@ var SCIndent;
                 } else if (token[i].kind >= 51 && token[i].kind <= 52) {
                     arr_st.push("<\/span>");
                     span_open_count--;
+                }
                 // ***** S式コメント終了のとき *****
-                } else if (token[i].scmt_end) {
+                if (token[i].scmt_end) {
                     arr_st.push("<\/span>");
                     span_open_count--;
                     scmt_count--;
@@ -494,7 +495,7 @@ var SCIndent;
                 // ***** 閉じ括弧のとき *****
                 case 2:
                     // ***** 対応する開き括弧のチェック *****
-                    if (pr.paren_mode == 0) {
+                    if (pr.paren_mode == 0 || pr.quote_flag) {
                         token[i].paren_no = 0;
                         break;
                     }
