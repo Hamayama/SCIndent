@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-12 v1.21
+    2015-1-16 v1.22
 -->
 <style type="text/css">
 <!--
@@ -303,7 +303,9 @@ var SCIndent;
         arr_st = [];
         token_length = token.length;
         for (i = 0; i < token_length; i++) {
+            // ***** 前方の空白を追加 *****
             arr_st.push(make_space(token[i].before_space));
+            // ***** 単語を追加 *****
             arr_st.push(token[i].word);
         }
         out_st = arr_st.join("");
@@ -326,7 +328,7 @@ var SCIndent;
                     span_open_count++;
                 // ***** 閉じ括弧が多すぎるとき *****
                 } else if (token[i].kind == 2 && token[i].paren_no == 0) {
-                    arr_st.push("<span style='color: " + make_color_code(error_color) + ";'>");
+                    arr_st.push("<span style='color: " + make_color_code(error_color) + "; font-weight: bold;'>");
                     span_open_count++;
                 // ***** コメントのとき *****
                 } else if (token[i].kind >= 51 && token[i].kind <= 53) {
@@ -578,12 +580,12 @@ var SCIndent;
                         // ***** 構文の引数の最後-1までのとき *****
                         if (pr.paren_mode < pr.keyword_val + 2) {
                             pr.indent_now = pr.column_base + tab_size * 2;
-                        // ***** 構文の引数の最後より後のとき *****
+                        // ***** 構文の引数の最後以降のとき *****
                         } else {
                             pr.indent_now = pr.column_base + tab_size;
                         }
                     // ***** 構文キーワードあり(特殊パターン)のとき *****
-                    } else if (pr.keyword_val <= -2 && pr.keyword_val >= -3) {
+                    } else if (pr.keyword_val >= -3 && pr.keyword_val <= -2) {
                         // ***** 開き括弧後から2番目の要素までのとき *****
                         if (pr.paren_mode <= 3 && pr.paren_last < pr.paren_mode) {
                             pr.indent_now2 = pr.column_now;
@@ -595,7 +597,7 @@ var SCIndent;
                         } else if (pr.paren_mode == -pr.keyword_val - 2 + 2) {
                             pr.indent_now = pr.column_base + tab_size;
                         // ***** 構文のbodyの先頭のとき *****
-                        // (行頭でないときに動作が切り替わる)
+                        // (行頭でないときに動作を切り替える)
                         } else if (pr.paren_mode == -pr.keyword_val - 2 + 3 && pr.paren_last < pr.paren_mode) {
                             if (!pr.line_start) {
                                 pr.indent_now = pr.indent_now2;
