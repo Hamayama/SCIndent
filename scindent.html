@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-18 v1.23
+    2015-1-18 v1.24
 -->
 <style type="text/css">
 <!--
@@ -873,8 +873,10 @@ var SCIndent;
                     // ***** デリミタのとき *****
                     if (ch != "\\" && ch2 == delim_ch) {
                         i++;
-                        // ***** 正規表現で末尾にiがあるとき *****
-                        if (delim_ch == "/" && src_st.charAt(i) == "i") { i++; }
+                        // ***** 正規表現の末尾にiがあるとき *****
+                        if (delim_ch == "/") {
+                            if (i < src_st_len && src_st.charAt(i) == "i") { i++; }
+                        }
                         break;
                     }
                     // ***** 改行のとき *****
