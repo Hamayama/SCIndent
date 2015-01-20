@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-18 v1.24
+    2015-1-20 v1.25
 -->
 <style type="text/css">
 <!--
@@ -691,7 +691,9 @@ var SCIndent;
                 continue;
             }
             // ***** ユニフォームベクタの開き括弧のとき *****
-            if (ch == "#" && (ch2 == "f" || ch2 == "s" || ch2 == "u")) {
+            if (ch == "#" && (
+                ch2 == "f" || ch2 == "s" || ch2 == "u" ||
+                ch2 == "F" || ch2 == "S" || ch2 == "U")) {
                 i++;
                 uvector_mode = 0;
                 while (i < src_st_len) {
