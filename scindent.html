@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-1-23 v1.26
+    2015-2-5 v1.27
 -->
 <style type="text/css">
 <!--
@@ -113,6 +113,9 @@ function clear_button() {
 var SCIndent;
 (function (SCIndent) {
     // ***** 定数 *****
+    var max_init_indent = 200; // 初期インデント最大値
+    var max_str_size = 10000;  // 処理する文字数最大値
+
     var tab_size = 2;      // タブ幅
     var tab_char_size = 4; // タブ文字幅
     var keyword_table = {  // 構文キーワード
@@ -268,7 +271,7 @@ var SCIndent;
         init_indent = init_indent1;
         if (isNaN(init_indent)) { init_indent = 0; }
         if (init_indent < 0)    { init_indent = 0; }
-        if (init_indent > 200)  { init_indent = 200; }
+        if (init_indent > max_init_indent) { init_indent = max_init_indent; }
         // ***** 色表示フラグの取得 *****
         show_color = show_color1;
         // ***** 括弧番号表示フラグの取得 *****
@@ -945,7 +948,8 @@ var SCIndent;
     function make_space(count) {
         var add_st = " ";
         var result_st = "";
-        if (count <= 0) { return result_st; }
+        count |= 0;
+        if (!(count > 0 && count <= max_str_size)) { return result_st; }
         while (true) {
             if (count & 1) { result_st += add_st; }
             count >>= 1;
