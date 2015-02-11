@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-2-9 v1.28
+    2015-2-11 v1.29
 -->
 <style type="text/css">
 <!--
@@ -644,6 +644,23 @@ var SCIndent;
         var delim_ch;     // デリミタ文字
         var string_start; // 文字列開始フラグ(boolean)
 
+        // ***** トークン追加 *****
+        function token_push(kind, line_start_new) {
+            var tk = {};
+            // ***** トークン追加 *****
+            tk.kind = kind;
+            tk.word = src_st.substring(i_start, i);
+            tk.line_start = line_start;
+            tk.line_no = line_no_tk;
+            tk.before_space = before_space;
+            tk.paren_no = 0;
+            tk.scmt_end = false;
+            token.push(tk);
+            // ***** フラグ等更新 *****
+            line_start = line_start_new;
+            before_space = 0;
+        }
+
         // ***** トークン分割 *****
         token = [];
         i = 0;
@@ -665,31 +682,23 @@ var SCIndent;
             if (ch == "\r" || ch == "\n") {
                 line_no++;
                 if (ch == "\r" && ch2 == "\n") { i++; }
-                token_push(0, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = true;
-                before_space = 0;
+                token_push(0, true);
                 continue;
             }
             // ***** 開き括弧のとき *****
             if (ch == "(" || ch == "[" || ch == "{") {
-                token_push(1, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(1, false);
                 continue;
             }
             // ***** 閉じ括弧のとき *****
             if (ch == ")" || ch == "]" || ch == "}") {
-                token_push(2, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(2, false);
                 continue;
             }
             // ***** ベクタの開き括弧のとき *****
             if (ch == "#" && ch2 == "(") {
                 i++;
-                token_push(1, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(1, false);
                 continue;
             }
             // ***** ユニフォームベクタの開き括弧のとき *****
@@ -719,9 +728,7 @@ var SCIndent;
                 }
                 // ***** 完成したとき *****
                 if (uvector_mode == 2) {
-                    token_push(1, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                    line_start = false;
-                    before_space = 0;
+                    token_push(1, false);
                     continue;
                 }
                 // ***** その他のとき(#fや#falseかもしれない) *****
@@ -732,25 +739,19 @@ var SCIndent;
             // ***** クォートの開き括弧のとき *****
             if (ch == "'" && (ch2 == "(" || ch2 == "[" || ch2 == "{")) {
                 i++;
-                token_push(1, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(1, false);
                 continue;
             }
             // ***** クォート等のとき *****
             if (ch == "'" || ch == "`" || ch == ",") {
                 if (ch == "," && ch2 == "@") { i++; }
-                token_push(3, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(3, false);
                 continue;
             }
             // ***** アンインターンドシンボルまたはリーダ構築子構文のとき *****
             if (ch == "#" && (ch2 == ":" || ch2 == ",")) {
                 i++;
-                token_push(3, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(3, false);
                 continue;
             }
             // ***** デバッグマクロのとき *****
@@ -758,9 +759,7 @@ var SCIndent;
                 i++;
                 if (i < src_st_len && src_st.charAt(i) == "=") {
                     i++;
-                    token_push(3, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                    line_start = false;
-                    before_space = 0;
+                    token_push(3, false);
                     continue;
                 }
                 // ***** その他のとき *****
@@ -779,9 +778,7 @@ var SCIndent;
                     // ***** その他のとき *****
                     i++;
                 }
-                token_push(51, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(51, false);
                 continue;
             }
             // ***** 複数行コメントのとき *****
@@ -802,17 +799,13 @@ var SCIndent;
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
-                token_push(52, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(52, false);
                 continue;
             }
             // ***** S式コメントのとき *****
             if (ch == "#" && ch2 == ";") {
                 i++;
-                token_push(53, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(53, false);
                 continue;
             }
             // ***** シンボルまたは文字列のとき *****
@@ -828,9 +821,7 @@ var SCIndent;
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
-                token_push(100, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(100, false);
                 continue;
             }
             // ***** 不完全文字列または補間文字列または旧補間文字列のとき *****
@@ -855,9 +846,7 @@ var SCIndent;
                         // ***** 改行のとき *****
                         if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                     }
-                    token_push(100, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                    line_start = false;
-                    before_space = 0;
+                    token_push(100, false);
                     continue;
                 }
                 // ***** その他のとき *****
@@ -886,9 +875,7 @@ var SCIndent;
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
-                token_push(100, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                line_start = false;
-                before_space = 0;
+                token_push(100, false);
                 continue;
             }
             // ***** 文字リテラルのとき *****
@@ -902,9 +889,7 @@ var SCIndent;
                         ch == "["  || ch == "]"  || ch == "{"  || ch == "}"  ||
                         ch == "\\" || ch == "#") {
                         i++;
-                        token_push(100, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-                        line_start = false;
-                        before_space = 0;
+                        token_push(100, false);
                         continue;
                     }
                 }
@@ -924,23 +909,8 @@ var SCIndent;
                 // ***** その他のとき *****
                 i++;
             }
-            token_push(100, src_st.substring(i_start, i), line_start, line_no_tk, before_space);
-            line_start = false;
-            before_space = 0;
+            token_push(100, false);
         }
-    }
-
-    // ***** トークン追加 *****
-    function token_push(kind, word, line_start, line_no, before_space) {
-        var tk = {};
-        tk.kind = kind;
-        tk.word = word;
-        tk.line_start = line_start;
-        tk.line_no = line_no;
-        tk.before_space = before_space;
-        tk.paren_no = 0;
-        tk.scmt_end = false;
-        token.push(tk);
     }
 
     // ***** 空白文字列を作る *****
