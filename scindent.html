@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-2-11 v1.29
+    2015-5-21 v1.30
 -->
 <style type="text/css">
 <!--
@@ -87,6 +87,52 @@ function clear_button() {
     // ***** 出力のクリア *****
     document.getElementById("out_text1").value = "";
     document.getElementById("result_show1").innerHTML = "";
+    // ***** 戻り値を返す *****
+    ret = true;
+    return ret;
+}
+
+// ***** サンプルボタン *****
+function sample_button(sample_no) {
+    var ret;
+    var src_st;
+
+    // ***** 戻り値の初期化 *****
+    ret = false;
+    // ***** 要素の存在チェック *****
+    if (!document.getElementById("src_text1"))    { Alm("sample_button:0001"); return ret; }
+    // ***** ソースの設定 *****
+    switch (sample_no) {
+        case 0:
+            src_st = "(if #t\n"
+                + "'true\n"
+                + "'false)\n";
+            break;
+        case 1:
+            src_st = "(do ((i 1 (+ i 1)))\n"
+                + "((> i 10) #f)\n"
+                + "(print i))\n";
+            break;
+        case 2:
+            src_st = ";; Newton's method\n"
+                + "(define (mysqrt r)\n"
+                + "(if (> r 0)\n"
+                + "(let1 x0 (if (> r 1) r 1)\n"
+                + "(let loop ((x1 x0) (x2 (/. (+ (/. r x0) x0) 2)))\n"
+                + "(print x1 \" -> \" x2)\n"
+                + "(if (> (- x1 x2) 1.0e-10)\n"
+                + "(loop x2 (/. (+ (/. r x2) x2) 2))\n"
+                + "x2)))\n"
+                + "0))\n"
+                + "(mysqrt 2)\n";
+            break;
+        default:
+            src_st = "";
+            break;
+    }
+    document.getElementById("src_text1").value = src_st;
+    // ***** 変換ボタンを押したことにする *****
+    convert_button();
     // ***** 戻り値を返す *****
     ret = true;
     return ret;
@@ -981,6 +1027,12 @@ initial indent : <input type="text" id="init_indent" value="0" style="width: 50p
 </tr><tr>
 <th align="left" valign="top">out:</th>
 <th align="left" width="95%"><textarea id="out_text1" cols="40" rows="10" style="width: 100%;"></textarea></th>
+<th></th>
+</tr><tr>
+<th></th>
+<th align="left"><input type="button" value="sample1" onclick="sample_button(0);">
+<input type="button" value="sample2" onclick="sample_button(1);">
+<input type="button" value="sample3" onclick="sample_button(2);"></th>
 <th></th>
 </tr></table>
 <pre><span id="debug_show1"></span></pre>
