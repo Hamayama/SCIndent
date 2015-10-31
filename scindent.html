@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-10-29 v1.31
+    2015-10-31 v1.32
 -->
 <style type="text/css">
 <!--
@@ -860,13 +860,14 @@ var SCIndent;
             // ***** シンボルまたは文字列のとき *****
             if (ch == "|" || ch == "\"") {
                 delim_ch = ch;
-                i--;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
                     if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                    // ***** エスケープのとき *****
+                    if (ch == "\\" && (ch2 == "\\" || ch2 == delim_ch)) { i++; continue; }
                     // ***** デリミタのとき *****
-                    if (ch != "\\" && ch2 == delim_ch) { i++; break; }
+                    if (ch == delim_ch) { break; }
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
@@ -885,13 +886,14 @@ var SCIndent;
                     }
                 }
                 if (string_start == true) {
-                    i--;
                     while (i < src_st_len) {
                         // ***** 1文字取り出す *****
                         ch = src_st.charAt(i++);
                         if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                        // ***** エスケープのとき *****
+                        if (ch == "\\" && (ch2 == "\\" || ch2 == "\"")) { i++; continue; }
                         // ***** デリミタのとき *****
-                        if (ch != "\\" && ch2 == "\"") { i++; break; }
+                        if (ch == "\"") { break; }
                         // ***** 改行のとき *****
                         if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                     }
@@ -907,14 +909,14 @@ var SCIndent;
             if (ch == "#" && (ch2 == "[" || ch2 == "/")) {
                 if (ch2 == "[") { delim_ch = "]"; } else { delim_ch = "/"; }
                 i++;
-                i--;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
                     if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                    // ***** エスケープのとき *****
+                    if (ch == "\\" && (ch2 == "\\" || ch2 == delim_ch)) { i++; continue; }
                     // ***** デリミタのとき *****
-                    if (ch != "\\" && ch2 == delim_ch) {
-                        i++;
+                    if (ch == delim_ch) {
                         // ***** 正規表現の末尾にiがあるとき *****
                         if (delim_ch == "/") {
                             if (i < src_st_len && src_st.charAt(i) == "i") { i++; }
