@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-10-31 v1.33
+    2015-11-6 v1.34
 -->
 <style type="text/css">
 <!--
@@ -939,6 +939,8 @@ var SCIndent;
                         token_push(100, false);
                         continue;
                     }
+                    // ***** その他のとき *****
+                    i++;
                 }
                 // ***** その他のとき *****
                 ch = "";
@@ -950,7 +952,7 @@ var SCIndent;
                 // ***** 1文字取り出す *****
                 ch = src_st.charAt(i);
                 // ***** デリミタのとき *****
-                if (" \t\r\n|()\";[]{}".indexOf(ch) >= 0) { break; }
+                if (" \t\r\n|()\";[]{}\\#'`,".indexOf(ch) >= 0) { break; }
                 // ***** その他のとき *****
                 i++;
             }
