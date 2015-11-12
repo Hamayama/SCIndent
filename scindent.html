@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-11-6 v1.34
+    2015-11-12 v1.35
 -->
 <style type="text/css">
 <!--
@@ -344,7 +344,7 @@ var SCIndent;
     // ***** 出力の生成 *****
     function make_output() {
         var i;
-        var token_length;    // トークン数
+        var token_len;       // トークン数
         var arr_st = [];     // 文字列の配列
         var span_open_count; // 閉じていないspanタグの数
         var scmt_count;      // S式コメントカウンタ
@@ -352,8 +352,8 @@ var SCIndent;
         // ***** テキスト出力の生成 *****
         out_st = "";
         arr_st = [];
-        token_length = token.length;
-        for (i = 0; i < token_length; i++) {
+        token_len = token.length;
+        for (i = 0; i < token_len; i++) {
             // ***** 前方の空白を追加 *****
             arr_st.push(make_space(token[i].before_space));
             // ***** 単語を追加 *****
@@ -366,8 +366,8 @@ var SCIndent;
         arr_st = [];
         span_open_count = 0;
         scmt_count = 0;
-        token_length = token.length;
-        for (i = 0; i < token_length; i++) {
+        token_len = token.length;
+        for (i = 0; i < token_len; i++) {
             // ***** 前方の空白を追加 *****
             arr_st.push(make_space(token[i].before_space));
             // ***** 色設定を追加 *****
@@ -438,7 +438,7 @@ var SCIndent;
         var i;
         var j1, j2, j3;
         var wd, wd2;          // 単語
-        var token_length;     // トークン数
+        var token_len;        // トークン数
         var column_now;       // 現在行の文字数
         var pr = {};          // 括弧情報
                               //   pr.i            トークン位置
@@ -476,8 +476,8 @@ var SCIndent;
         pr.line_start = false;
         paren_stack = [];
         paren_no = 1;
-        token_length = token.length;
-        for (i = 0; i < token_length; i++) {
+        token_len = token.length;
+        for (i = 0; i < token_len; i++) {
 
             // ***** インデントの設定と文字数の計算 *****
             // ***** 行頭のとき *****
