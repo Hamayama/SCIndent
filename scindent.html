@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-12-27 v1.37
+    2015-12-27 v1.38
 -->
 <style type="text/css">
 <!--
@@ -355,7 +355,9 @@ var SCIndent;
         token_len = token.length;
         for (i = 0; i < token_len; i++) {
             // ***** 前方の空白を追加 *****
-            arr_st.push(make_space(token[i].before_space));
+            if (token[i].kind != 0) {
+                arr_st.push(make_space(token[i].before_space));
+            }
             // ***** 単語を追加 *****
             arr_st.push(token[i].word);
         }
@@ -369,7 +371,9 @@ var SCIndent;
         token_len = token.length;
         for (i = 0; i < token_len; i++) {
             // ***** 前方の空白を追加 *****
-            arr_st.push(make_space(token[i].before_space));
+            if (token[i].kind != 0) {
+                arr_st.push(make_space(token[i].before_space));
+            }
             // ***** 色設定を追加 *****
             if (show_color) {
                 // ***** 開き括弧のとき *****
@@ -493,11 +497,6 @@ var SCIndent;
                 // ***** 文字数を計算 *****
                 column_now = token[i].before_space;
                 pr.column_now = column_now;
-                // ***** 改行のとき *****
-                if (token[i].kind == 0) {
-                    // ***** インデントをクリア *****
-                    token[i].before_space = 0;
-                }
             // ***** 行頭以外のとき *****
             } else {
                 // ***** 文字数を計算 *****
@@ -528,8 +527,6 @@ var SCIndent;
                         pr.paren_mode++;
                         pr.line_start = token[i].line_start;
                     }
-                    // ***** クォートフラグOFF *****
-                    pr.quote_flag = false;
                     // ***** 括弧情報の追加 *****
                     paren_stack.push(pr);
                     pr = {};
@@ -553,19 +550,19 @@ var SCIndent;
                 case 2:
                     // ***** 対応する開き括弧のチェック *****
                     if (pr.paren_mode == 0 || pr.quote_flag) {
-                        token[i].paren_no = 0;
                         break;
                     }
                     wd = token[pr.i].word;
                     wd = wd.substring(wd.length - 1);
                     wd2 = token[i].word;
                     if (!((wd == "(" && wd2 == ")") || (wd == "[" && wd2 == "]") || (wd == "{" && wd2 == "}"))) {
-                        token[i].paren_no = 0;
                         break;
                     }
                     token[i].paren_no = token[pr.i].paren_no;
                     // ***** 括弧情報の削除 *****
                     pr = paren_stack.pop();
+                    // ***** クォートフラグOFF *****
+                    pr.quote_flag = false;
                     // ***** S式コメントの終了 *****
                     if (pr.scmt_count > 0) {
                         pr.scmt_count--;
@@ -605,15 +602,8 @@ var SCIndent;
                         pr.let_flag = false;
                         pr.keyword_val = 2;
                     }
-                    // ***** クォートフラグOFF *****
-                    pr.quote_flag = false;
-                    // ***** S式コメントの終了 *****
-                    if (pr.scmt_count > 0) {
-                        pr.scmt_count--;
-                        token[i].scmt_end = true;
-                    }
                     // ***** 開き括弧後の先頭の要素のとき *****
-                    if (pr.paren_mode == 2) {
+                    if (pr.paren_mode == 2 && !pr.quote_flag) {
                         // ***** 構文キーワードのとき *****
                         wd = token[i].word;
                         if (hasOwn.call(keyword_table, wd)) {
@@ -628,6 +618,13 @@ var SCIndent;
                         if (wd == "let") {
                             pr.let_flag = true;
                         }
+                    }
+                    // ***** クォートフラグOFF *****
+                    pr.quote_flag = false;
+                    // ***** S式コメントの終了 *****
+                    if (pr.scmt_count > 0) {
+                        pr.scmt_count--;
+                        token[i].scmt_end = true;
                     }
                     break;
             }
