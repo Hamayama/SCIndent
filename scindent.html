@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2015-12-27 v1.38
+    2015-12-28 v1.39
 -->
 <style type="text/css">
 <!--
@@ -440,8 +440,8 @@ var SCIndent;
     // ***** インデント変換 *****
     function make_indent() {
         var i;
-        var j1, j2, j3;
-        var wd, wd2;          // 単語
+        var j, j2, j3;
+        var wd, wd2, wd3;     // 単語
         var token_len;        // トークン数
         var column_now;       // 現在行の文字数
         var pr = {};          // 括弧情報
@@ -502,14 +502,14 @@ var SCIndent;
                 // ***** 文字数を計算 *****
                 // (リテラル内の改行に対応)
                 wd = token[i - 1].word;
-                j1 = wd.lastIndexOf("\r");
-                j2 = wd.lastIndexOf("\n");
-                j3 = wd.length;
-                if (j1 >= 0 || j2 >= 0) {
-                    if (j1 >= j2) { j3 -= j1 + 1; } else { j3 -= j2 + 1; }
-                    column_now = j3 + token[i].before_space;
+                j = wd.length;
+                j2 = wd.lastIndexOf("\r");
+                j3 = wd.lastIndexOf("\n");
+                if (j2 >= 0 || j3 >= 0) {
+                    if (j2 >= j3) { j -= j2 + 1; } else { j -= j3 + 1; }
+                    column_now = j + token[i].before_space;
                 } else {
-                    column_now += j3 + token[i].before_space;
+                    column_now += j + token[i].before_space;
                 }
                 pr.column_now = column_now;
             }
@@ -553,9 +553,9 @@ var SCIndent;
                         break;
                     }
                     wd = token[pr.i].word;
-                    wd = wd.substring(wd.length - 1);
-                    wd2 = token[i].word;
-                    if (!((wd == "(" && wd2 == ")") || (wd == "[" && wd2 == "]") || (wd == "{" && wd2 == "}"))) {
+                    wd2 = wd.substring(wd.length - 1);
+                    wd3 = token[i].word;
+                    if (!((wd2 == "(" && wd3 == ")") || (wd2 == "[" && wd3 == "]") || (wd2 == "{" && wd3 == "}"))) {
                         break;
                     }
                     token[i].paren_no = token[pr.i].paren_no;
@@ -597,11 +597,6 @@ var SCIndent;
                         pr.paren_mode++;
                         pr.line_start = token[i].line_start;
                     }
-                    // ***** 名前付きletのとき *****
-                    if (pr.let_flag && pr.paren_mode == 3 && !pr.quote_flag) {
-                        pr.let_flag = false;
-                        pr.keyword_val = 2;
-                    }
                     // ***** 開き括弧後の先頭の要素のとき *****
                     if (pr.paren_mode == 2 && !pr.quote_flag) {
                         // ***** 構文キーワードのとき *****
@@ -618,6 +613,11 @@ var SCIndent;
                         if (wd == "let") {
                             pr.let_flag = true;
                         }
+                    }
+                    // ***** 名前付きletのとき *****
+                    if (pr.let_flag && pr.paren_mode == 3 && !pr.quote_flag) {
+                        pr.let_flag = false;
+                        pr.keyword_val = 2;
                     }
                     // ***** クォートフラグOFF *****
                     pr.quote_flag = false;
