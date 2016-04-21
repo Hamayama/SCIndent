@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2016-3-31 v1.41
+    2016-4-21 v1.42
 -->
 <style type="text/css">
 <!--
@@ -55,6 +55,7 @@ function convert_button() {
     if (!document.getElementById("show_paren_no")) { Alm("convert_button:0004"); return ret; }
     if (!document.getElementById("out_text1"))     { Alm("convert_button:0005"); return ret; }
     if (!document.getElementById("result_show1"))  { Alm("convert_button:0006"); return ret; }
+    if (!document.getElementById("no_change"))     { Alm("convert_button:0007"); return ret; }
     // ***** ソースの取得 *****
     src_st = document.getElementById("src_text1").value;
     init_indent = parseInt(document.getElementById("init_indent").value, 10);
@@ -65,6 +66,7 @@ function convert_button() {
     // ***** 出力の表示 *****
     document.getElementById("out_text1").value = result.out;
     document.getElementById("result_show1").innerHTML = result.html;
+    document.getElementById("no_change").style.display = (src_st == result.out) ? "block" : "none";
     // ***** 戻り値を返す *****
     ret = true;
     return ret;
@@ -82,11 +84,13 @@ function clear_button() {
     if (!document.getElementById("src_text1"))     { Alm("clear_button:0001"); return ret; }
     if (!document.getElementById("out_text1"))     { Alm("clear_button:0002"); return ret; }
     if (!document.getElementById("result_show1"))  { Alm("clear_button:0003"); return ret; }
+    if (!document.getElementById("no_change"))     { Alm("clear_button:0004"); return ret; }
     // ***** ソースのクリア *****
     document.getElementById("src_text1").value = "";
     // ***** 出力のクリア *****
     document.getElementById("out_text1").value = "";
     document.getElementById("result_show1").innerHTML = "";
+    document.getElementById("no_change").style.display = "none";
     // ***** 戻り値を返す *****
     ret = true;
     return ret;
@@ -1041,6 +1045,7 @@ initial indent : <input type="text" id="init_indent" value="0" style="width: 50p
 <input type="button" value="sample3" onclick="sample_button(2);"></th>
 <th></th>
 </tr></table>
+<div id="no_change" style="display: none;"><br><b>[ no change ]</b></div>
 <pre><span id="debug_show1"></span></pre>
 <pre><span id="result_show1"></span></pre>
 </form>
