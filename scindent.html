@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2016-4-21 v1.42
+    2017-1-9 v1.50
 -->
 <style type="text/css">
 <!--
@@ -81,10 +81,10 @@ function clear_button() {
     // ***** デバッグ表示の初期化 *****
     DebugShowClear();
     // ***** 要素の存在チェック *****
-    if (!document.getElementById("src_text1"))     { Alm("clear_button:0001"); return ret; }
-    if (!document.getElementById("out_text1"))     { Alm("clear_button:0002"); return ret; }
-    if (!document.getElementById("result_show1"))  { Alm("clear_button:0003"); return ret; }
-    if (!document.getElementById("no_change"))     { Alm("clear_button:0004"); return ret; }
+    if (!document.getElementById("src_text1"))    { Alm("clear_button:0001"); return ret; }
+    if (!document.getElementById("out_text1"))    { Alm("clear_button:0002"); return ret; }
+    if (!document.getElementById("result_show1")) { Alm("clear_button:0003"); return ret; }
+    if (!document.getElementById("no_change"))    { Alm("clear_button:0004"); return ret; }
     // ***** ソースのクリア *****
     document.getElementById("src_text1").value = "";
     // ***** 出力のクリア *****
@@ -104,8 +104,9 @@ function sample_button(sample_no) {
     // ***** 戻り値の初期化 *****
     ret = false;
     // ***** 要素の存在チェック *****
-    if (!document.getElementById("src_text1"))    { Alm("sample_button:0001"); return ret; }
+    if (!document.getElementById("src_text1")) { Alm("sample_button:0001"); return ret; }
     // ***** ソースの設定 *****
+    src_st = "";
     switch (sample_no) {
         case 0:
             src_st = "(if #t\n"
@@ -129,9 +130,6 @@ function sample_button(sample_no) {
                 + "x2)))\n"
                 + "0))\n"
                 + "(mysqrt 2)\n";
-            break;
-        default:
-            src_st = "";
             break;
     }
     document.getElementById("src_text1").value = src_st;
@@ -203,6 +201,8 @@ var SCIndent;
         // "define-method":-1000,
         // "define-module":-1000,
         // "define-reader-ctor":-1000,
+        "and-let1":2,
+        "ecase":1,
         "glet1":2,
         "hash-table":0,
         "if-let1":2,
@@ -466,6 +466,7 @@ var SCIndent;
                               //   pr.scmt_count   S式コメントカウンタ
                               //   pr.line_start   行頭フラグ(bodyの先頭が行頭にないときの対応用)(boolean)
                               //   pr.let_flag     letフラグ(名前付きletの対応用)(boolean)
+                              //   pr.proc_flag    手続き識別フラグ(boolean)
                               //
         var paren_stack = []; // 括弧情報のスタック(配列)
         var paren_no;         // 括弧番号(1オリジン)
@@ -485,6 +486,7 @@ var SCIndent;
         pr.scmt_count  = 0;
         pr.line_start  = false;
         pr.let_flag    = false;
+        pr.proc_flag   = false;
         paren_stack = [];
         paren_no = 1;
         token_len = token.length;
@@ -546,6 +548,7 @@ var SCIndent;
                     pr.scmt_count  = 0;
                     pr.line_start  = false;
                     pr.let_flag    = false;
+                    pr.proc_flag   = false;
                     // ***** 括弧番号の設定 *****
                     token[i].paren_no = paren_no;
                     paren_no++;
@@ -623,6 +626,10 @@ var SCIndent;
                         pr.let_flag = false;
                         pr.keyword_val = 2;
                     }
+                    // ***** 手続きのとき *****
+                    if (token[pr.i].word.length == 1 && pr.paren_mode == 2) {
+                        pr.proc_flag = true;
+                    }
                     // ***** クォートフラグOFF *****
                     pr.quote_flag = false;
                     // ***** S式コメントの終了 *****
@@ -639,8 +646,8 @@ var SCIndent;
                 pr.indent_now = pr.column_base + token[pr.i].word.length;
             // ***** 開き括弧後のとき *****
             } else if (pr.paren_mode >= 2) {
-                // ***** リストの開き括弧のとき *****
-                if (token[pr.i].word.length == 1) {
+                // ***** 手続きのとき *****
+                if (pr.proc_flag) {
                     // ***** 構文キーワードありのとき *****
                     if (pr.keyword_val >= 0) {
                         // ***** 開き括弧後から2番目の要素までのとき *****
@@ -674,7 +681,7 @@ var SCIndent;
                             pr.paren_last = pr.paren_mode;
                         }
                     }
-                // ***** ベクタまたはクォートの開き括弧のとき *****
+                // ***** 手続き以外のとき *****
                 } else {
                     // ***** 開き括弧後から先頭の要素までのとき *****
                     if (pr.paren_mode <= 2 && pr.paren_last < pr.paren_mode) {
@@ -734,7 +741,7 @@ var SCIndent;
             if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
             // ***** 空白のとき *****
             if (ch == " ") { before_space++; continue; }
-            // ***** タブのとき *****
+            // ***** TABのとき *****
             if (ch == "\t") { before_space += tab_char_size; continue; }
             // ***** 改行のとき *****
             if (ch == "\r" || ch == "\n") {
