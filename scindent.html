@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-1-11 v1.51
+    2017-1-11 v1.52
 -->
 <style type="text/css">
 <!--
@@ -205,7 +205,7 @@ var SCIndent;
         "ecase":1,
         "glet1":2,
         // "hash-table":0,
-        "hash-table":1,
+        "hash-table":-1000,
         "if-let1":2,
         "match-lambda":0,
         "match-lambda*":0,
@@ -463,7 +463,7 @@ var SCIndent;
                               //   pr.keyword_val  構文キーワードの値
                               //                     (=-1:キーワードなし,
                               //                      = 0～:構文のbodyの前の引数の数,
-                              //                      =-1000:特殊パターン(define))
+                              //                      =-1000:特殊パターン(define/hash-table))
                               //   pr.quote_flag   クォートフラグ(boolean)
                               //   pr.paren_last   括弧モードの処理済みチェック用
                               //   pr.scmt_count   S式コメントカウンタ
@@ -673,7 +673,7 @@ var SCIndent;
                             }
                         }
                         pr.paren_last = pr.paren_mode;
-                    // ***** 構文キーワードあり(define)のとき *****
+                    // ***** 構文キーワードあり(define/hash-table)のとき *****
                     } else if (pr.keyword_val == -1000) {
                         pr.indent_now = pr.column_base + tab_size;
                     // ***** 構文キーワードなしのとき *****
