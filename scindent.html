@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-1-11 v1.52
+    2017-1-12 v1.53
 -->
 <style type="text/css">
 <!--
@@ -713,7 +713,7 @@ var SCIndent;
         var string_start; // 文字列開始フラグ(boolean)
 
         // ***** トークン追加 *****
-        function token_push(kind, line_start_new) {
+        function token_push(kind) {
             var tk = {};
             // ***** トークン追加 *****
             tk.kind = kind;
@@ -725,7 +725,7 @@ var SCIndent;
             tk.scmt_end = false;
             token.push(tk);
             // ***** フラグ等更新 *****
-            line_start = line_start_new;
+            line_start = false;
             before_space = 0;
         }
 
@@ -737,9 +737,10 @@ var SCIndent;
         before_space = 0;
         src_st_len = src_st.length;
         while (i < src_st_len) {
-            // ***** 1文字取り出す *****
+            // ***** 開始情報更新 *****
             i_start = i;
             line_no_tk = line_no;
+            // ***** 1文字取り出す *****
             ch = src_st.charAt(i++);
             if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
             // ***** 空白のとき *****
@@ -750,23 +751,24 @@ var SCIndent;
             if (ch == "\r" || ch == "\n") {
                 line_no++;
                 if (ch == "\r" && ch2 == "\n") { i++; }
-                token_push(0, true);
+                token_push(0);
+                line_start = true;
                 continue;
             }
             // ***** 開き括弧のとき *****
             if (ch == "(" || ch == "[" || ch == "{") {
-                token_push(1, false);
+                token_push(1);
                 continue;
             }
             // ***** 閉じ括弧のとき *****
             if (ch == ")" || ch == "]" || ch == "}") {
-                token_push(2, false);
+                token_push(2);
                 continue;
             }
             // ***** ベクタの開き括弧のとき *****
             if (ch == "#" && ch2 == "(") {
                 i++;
-                token_push(1, false);
+                token_push(1);
                 continue;
             }
             // ***** ユニフォームベクタの開き括弧のとき *****
@@ -796,7 +798,7 @@ var SCIndent;
                 }
                 // ***** 完成したとき *****
                 if (uvector_mode == 2) {
-                    token_push(1, false);
+                    token_push(1);
                     continue;
                 }
                 // ***** その他のとき(#fや#falseかもしれない) *****
@@ -807,19 +809,19 @@ var SCIndent;
             // ***** クォートの開き括弧のとき *****
             if (ch == "'" && (ch2 == "(" || ch2 == "[" || ch2 == "{")) {
                 i++;
-                token_push(1, false);
+                token_push(1);
                 continue;
             }
             // ***** クォート等のとき *****
             if (ch == "'" || ch == "`" || ch == ",") {
                 if (ch == "," && ch2 == "@") { i++; }
-                token_push(3, false);
+                token_push(3);
                 continue;
             }
             // ***** アンインターンドシンボルまたはリーダ構築子構文のとき *****
             if (ch == "#" && (ch2 == ":" || ch2 == ",")) {
                 i++;
-                token_push(3, false);
+                token_push(3);
                 continue;
             }
             // ***** デバッグマクロのとき *****
@@ -827,7 +829,7 @@ var SCIndent;
                 i++;
                 if (i < src_st_len && src_st.charAt(i) == "=") {
                     i++;
-                    token_push(3, false);
+                    token_push(3);
                     continue;
                 }
                 // ***** その他のとき *****
@@ -846,7 +848,7 @@ var SCIndent;
                     // ***** その他のとき *****
                     i++;
                 }
-                token_push(51, false);
+                token_push(51);
                 continue;
             }
             // ***** 複数行コメントのとき *****
@@ -867,13 +869,13 @@ var SCIndent;
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
-                token_push(52, false);
+                token_push(52);
                 continue;
             }
             // ***** S式コメントのとき *****
             if (ch == "#" && ch2 == ";") {
                 i++;
-                token_push(53, false);
+                token_push(53);
                 continue;
             }
             // ***** シンボルまたは文字列のとき *****
@@ -890,7 +892,7 @@ var SCIndent;
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
-                token_push(100, false);
+                token_push(100);
                 continue;
             }
             // ***** 不完全文字列または補間文字列または旧補間文字列のとき *****
@@ -916,7 +918,7 @@ var SCIndent;
                         // ***** 改行のとき *****
                         if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                     }
-                    token_push(100, false);
+                    token_push(100);
                     continue;
                 }
                 // ***** その他のとき *****
@@ -943,7 +945,7 @@ var SCIndent;
                     // ***** 改行のとき *****
                     if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
                 }
-                token_push(100, false);
+                token_push(100);
                 continue;
             }
             // ***** 文字リテラルのとき *****
@@ -955,7 +957,13 @@ var SCIndent;
                     // ***** 記号文字のとき *****
                     if ("|()\";[]{}\\#".indexOf(ch) >= 0) {
                         i++;
-                        token_push(100, false);
+                        token_push(100);
+                        continue;
+                    }
+                    // ***** 改行のとき *****
+                    // (改行コードの前までを登録(厳密には問題あり))
+                    if (ch == "\r" || ch == "\n") {
+                        token_push(100);
                         continue;
                     }
                     // ***** その他のとき *****
@@ -975,7 +983,7 @@ var SCIndent;
                 // ***** その他のとき *****
                 i++;
             }
-            token_push(100, false);
+            token_push(100);
         }
     }
 
