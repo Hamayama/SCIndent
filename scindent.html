@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-1-14 v1.54
+    2017-4-18 v1.55
 -->
 <style type="text/css">
 <!--
@@ -702,7 +702,7 @@ var SCIndent;
         var i;
         var i_start;      // 単語の開始位置
         var src_st_len;   // ソースの長さ
-        var ch, ch2;      // 文字
+        var ch, ch2, ch3; // 文字
         var line_start;   // 行頭フラグ(boolean)
         var line_no;      // 行番号(1オリジン)
         var line_no_tk;   // トークン開始時点の行番号
@@ -742,7 +742,7 @@ var SCIndent;
             line_no_tk = line_no;
             // ***** 1文字取り出す *****
             ch = src_st.charAt(i++);
-            if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+            ch2 = src_st.charAt(i);
             // ***** 空白のとき *****
             if (ch == " ") { before_space++; continue; }
             // ***** TABのとき *****
@@ -781,7 +781,7 @@ var SCIndent;
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i);
                     // ***** 数値のとき *****
-                    if (isDigit(ch)) {
+                    if (isDigit1(ch)) {
                         i++;
                         uvector_mode = 1;
                         if (i >= i_start + 5) { break; }
@@ -827,7 +827,10 @@ var SCIndent;
             // ***** デバッグマクロのとき *****
             if (ch == "#" && ch2 == "?") {
                 i++;
-                if (i < src_st_len && src_st.charAt(i) == "=") {
+                // ***** 1文字取り出す *****
+                ch3 = src_st.charAt(i);
+                // ***** イコールのとき *****
+                if (ch3 == "=") {
                     i++;
                     token_push(3);
                     continue;
@@ -858,7 +861,7 @@ var SCIndent;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
-                    if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                    ch2 = src_st.charAt(i);
                     // ***** 複数行コメント開始のとき *****
                     if (ch == "#" && ch2 == "|") { i++; comment_nest++; }
                     // ***** 複数行コメント終了のとき *****
@@ -884,7 +887,7 @@ var SCIndent;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
-                    if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                    ch2 = src_st.charAt(i);
                     // ***** エスケープのとき *****
                     if (ch == "\\" && (ch2 == "\\" || ch2 == delim_ch)) { i++; continue; }
                     // ***** デリミタのとき *****
@@ -900,7 +903,10 @@ var SCIndent;
                 i++;
                 string_start = true;
                 if (ch2 == "*" || ch2 == "`") {
-                    if (i < src_st_len && src_st.charAt(i) == "\"") {
+                    // ***** 1文字取り出す *****
+                    ch3 = src_st.charAt(i);
+                    // ***** デリミタのとき *****
+                    if (ch3 == "\"") {
                         i++;
                     } else {
                         string_start = false;
@@ -910,7 +916,7 @@ var SCIndent;
                     while (i < src_st_len) {
                         // ***** 1文字取り出す *****
                         ch = src_st.charAt(i++);
-                        if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                        ch2 = src_st.charAt(i);
                         // ***** エスケープのとき *****
                         if (ch == "\\" && (ch2 == "\\" || ch2 == "\"")) { i++; continue; }
                         // ***** デリミタのとき *****
@@ -933,7 +939,7 @@ var SCIndent;
                 while (i < src_st_len) {
                     // ***** 1文字取り出す *****
                     ch = src_st.charAt(i++);
-                    if (i < src_st_len) { ch2 = src_st.charAt(i); } else { ch2 = ""; }
+                    ch2 = src_st.charAt(i);
                     // ***** エスケープのとき *****
                     if (ch == "\\" && (ch2 == "\\" || ch2 == delim_ch)) { i++; continue; }
                     // ***** デリミタのとき *****
@@ -1019,9 +1025,8 @@ var SCIndent;
             .replace(/'/g,   "&#39;");
     }
 
-    // ***** 数値チェック *****
-    function isDigit(ch) {
-        // if (ch.match(/^[0-9]+$/)) { return true; }
+    // ***** 数値チェック(1文字のみ) *****
+    function isDigit1(ch) {
         var c = ch.charCodeAt(0);
         if (c >= 0x30 && c <= 0x39) { return true; }
         return false;
