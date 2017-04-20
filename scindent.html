@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-4-18 v1.55
+    2017-4-20 v1.56
 -->
 <style type="text/css">
 <!--
@@ -870,7 +870,10 @@ var SCIndent;
                         if (comment_nest <= 0) { break; }
                     }
                     // ***** 改行のとき *****
-                    if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
+                    if (ch == "\r" || ch == "\n") {
+                        line_no++;
+                        if (ch == "\r" && ch2 == "\n") { i++; }
+                    }
                 }
                 token_push(52);
                 continue;
@@ -893,7 +896,10 @@ var SCIndent;
                     // ***** デリミタのとき *****
                     if (ch == delim_ch) { break; }
                     // ***** 改行のとき *****
-                    if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
+                    if (ch == "\r" || ch == "\n") {
+                        line_no++;
+                        if (ch == "\r" && ch2 == "\n") { i++; }
+                    }
                 }
                 token_push(100);
                 continue;
@@ -922,7 +928,10 @@ var SCIndent;
                         // ***** デリミタのとき *****
                         if (ch == "\"") { break; }
                         // ***** 改行のとき *****
-                        if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
+                        if (ch == "\r" || ch == "\n") {
+                            line_no++;
+                            if (ch == "\r" && ch2 == "\n") { i++; }
+                        }
                     }
                     token_push(100);
                     continue;
@@ -949,7 +958,10 @@ var SCIndent;
                         break;
                     }
                     // ***** 改行のとき *****
-                    if (ch == "\r" || ch == "\n") { line_no++; if (ch == "\r" && ch2 == "\n") { i++; } }
+                    if (ch == "\r" || ch == "\n") {
+                        line_no++;
+                        if (ch == "\r" && ch2 == "\n") { i++; }
+                    }
                 }
                 token_push(100);
                 continue;
