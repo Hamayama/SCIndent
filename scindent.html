@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-4-20 v1.56
+    2017-6-6 v1.57
 -->
 <style type="text/css">
 <!--
@@ -745,7 +745,7 @@ var SCIndent;
             ch2 = src_st.charAt(i);
             // ***** 空白のとき *****
             if (ch == " ") { before_space++; continue; }
-            // ***** TABのとき *****
+            // ***** タブのとき *****
             if (ch == "\t") { before_space += tab_char_size; continue; }
             // ***** 改行のとき *****
             if (ch == "\r" || ch == "\n") {
@@ -1040,8 +1040,7 @@ var SCIndent;
     // ***** 数値チェック(1文字のみ) *****
     function isDigit1(ch) {
         var c = ch.charCodeAt(0);
-        if (c >= 0x30 && c <= 0x39) { return true; }
-        return false;
+        return (c >= 0x30 && c <= 0x39);
     }
 
 
