@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-6-6 v1.57
+    2017-7-17 v1.58
 -->
 <style type="text/css">
 <!--
@@ -37,25 +37,22 @@ function DebugShowClear() {
 
 // ***** 変換ボタン *****
 function convert_button() {
-    var ret;
     var src_st;
     var init_indent;
     var show_color;
     var show_paren_no;
     var result = {};
 
-    // ***** 戻り値の初期化 *****
-    ret = false;
     // ***** デバッグ表示の初期化 *****
     DebugShowClear();
     // ***** 要素の存在チェック *****
-    if (!document.getElementById("src_text1"))     { Alm("convert_button:0001"); return ret; }
-    if (!document.getElementById("init_indent"))   { Alm("convert_button:0002"); return ret; }
-    if (!document.getElementById("show_color"))    { Alm("convert_button:0003"); return ret; }
-    if (!document.getElementById("show_paren_no")) { Alm("convert_button:0004"); return ret; }
-    if (!document.getElementById("out_text1"))     { Alm("convert_button:0005"); return ret; }
-    if (!document.getElementById("result_show1"))  { Alm("convert_button:0006"); return ret; }
-    if (!document.getElementById("no_change"))     { Alm("convert_button:0007"); return ret; }
+    if (!document.getElementById("src_text1"))     { Alm("convert_button:0001"); return false; }
+    if (!document.getElementById("init_indent"))   { Alm("convert_button:0002"); return false; }
+    if (!document.getElementById("show_color"))    { Alm("convert_button:0003"); return false; }
+    if (!document.getElementById("show_paren_no")) { Alm("convert_button:0004"); return false; }
+    if (!document.getElementById("out_text1"))     { Alm("convert_button:0005"); return false; }
+    if (!document.getElementById("result_show1"))  { Alm("convert_button:0006"); return false; }
+    if (!document.getElementById("no_change"))     { Alm("convert_button:0007"); return false; }
     // ***** ソースの取得 *****
     src_st = document.getElementById("src_text1").value;
     init_indent = parseInt(document.getElementById("init_indent").value, 10);
@@ -67,44 +64,33 @@ function convert_button() {
     document.getElementById("out_text1").value = result.out;
     document.getElementById("result_show1").innerHTML = result.html;
     document.getElementById("no_change").style.display = (src_st == result.out) ? "block" : "none";
-    // ***** 戻り値を返す *****
-    ret = true;
-    return ret;
+    return true;
 }
 
 // ***** クリアボタン *****
 function clear_button() {
-    var ret;
-
-    // ***** 戻り値の初期化 *****
-    ret = false;
     // ***** デバッグ表示の初期化 *****
     DebugShowClear();
     // ***** 要素の存在チェック *****
-    if (!document.getElementById("src_text1"))    { Alm("clear_button:0001"); return ret; }
-    if (!document.getElementById("out_text1"))    { Alm("clear_button:0002"); return ret; }
-    if (!document.getElementById("result_show1")) { Alm("clear_button:0003"); return ret; }
-    if (!document.getElementById("no_change"))    { Alm("clear_button:0004"); return ret; }
+    if (!document.getElementById("src_text1"))    { Alm("clear_button:0001"); return false; }
+    if (!document.getElementById("out_text1"))    { Alm("clear_button:0002"); return false; }
+    if (!document.getElementById("result_show1")) { Alm("clear_button:0003"); return false; }
+    if (!document.getElementById("no_change"))    { Alm("clear_button:0004"); return false; }
     // ***** ソースのクリア *****
     document.getElementById("src_text1").value = "";
     // ***** 出力のクリア *****
     document.getElementById("out_text1").value = "";
     document.getElementById("result_show1").innerHTML = "";
     document.getElementById("no_change").style.display = "none";
-    // ***** 戻り値を返す *****
-    ret = true;
-    return ret;
+    return true;
 }
 
 // ***** サンプルボタン *****
 function sample_button(sample_no) {
-    var ret;
     var src_st;
 
-    // ***** 戻り値の初期化 *****
-    ret = false;
     // ***** 要素の存在チェック *****
-    if (!document.getElementById("src_text1")) { Alm("sample_button:0001"); return ret; }
+    if (!document.getElementById("src_text1")) { Alm("sample_button:0001"); return false; }
     // ***** ソースの設定 *****
     src_st = "";
     switch (sample_no) {
@@ -135,9 +121,7 @@ function sample_button(sample_no) {
     document.getElementById("src_text1").value = src_st;
     // ***** 変換ボタンを押したことにする *****
     convert_button();
-    // ***** 戻り値を返す *****
-    ret = true;
-    return ret;
+    return true;
 }
 
 
