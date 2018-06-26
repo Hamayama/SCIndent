@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2017-7-30 v1.59
+    2018-6-26 v1.60
 -->
 <style type="text/css">
 <!--
@@ -13,6 +13,7 @@
     background-color: #fffca8; /* 背景色 */
     color: #000000;            /* 文字色 */
 }
+td { font-weight: bold; }
 -->
 </style>
 <script type="text/javascript">
@@ -96,26 +97,26 @@ function sample_button(sample_no) {
     switch (sample_no) {
         case 0:
             src_st = "(if #t\n"
-                + "'true\n"
-                + "'false)\n";
+                   + "'true\n"
+                   + "'false)\n";
             break;
         case 1:
             src_st = "(do ((i 1 (+ i 1)))\n"
-                + "((> i 10) #f)\n"
-                + "(print i))\n";
+                   + "((> i 10) #f)\n"
+                   + "(print i))\n";
             break;
         case 2:
             src_st = ";; Newton's method\n"
-                + "(define (mysqrt r)\n"
-                + "(if (> r 0)\n"
-                + "(let1 x0 (if (> r 1) r 1)\n"
-                + "(let loop ((x1 x0) (x2 (/. (+ (/. r x0) x0) 2)))\n"
-                + "(print x1 \" -> \" x2)\n"
-                + "(if (> (- x1 x2) 1.0e-10)\n"
-                + "(loop x2 (/. (+ (/. r x2) x2) 2))\n"
-                + "x2)))\n"
-                + "0))\n"
-                + "(mysqrt 2)\n";
+                   + "(define (mysqrt r)\n"
+                   + "(if (> r 0)\n"
+                   + "(let1 x0 (if (> r 1) r 1)\n"
+                   + "(let loop ((x1 x0) (x2 (/. (+ (/. r x0) x0) 2)))\n"
+                   + "(print x1 \" -> \" x2)\n"
+                   + "(if (> (- x1 x2) 1.0e-10)\n"
+                   + "(loop x2 (/. (+ (/. r x2) x2) 2))\n"
+                   + "x2)))\n"
+                   + "0))\n"
+                   + "(mysqrt 2)\n";
             break;
     }
     document.getElementById("src_text1").value = src_st;
@@ -193,6 +194,9 @@ var SCIndent;
         "if-let1":2,
         "match-lambda":0,
         "match-lambda*":0,
+        "match-let":1,
+        "match-let*":1,
+        "match-letrec":1,
         "match-let1":2,
         "rlet1":2,
         "unwind-protect":1,
@@ -447,13 +451,13 @@ var SCIndent;
                               //   pr.keyword_val  構文キーワードの値
                               //                     (=-1:キーワードなし,
                               //                      = 0～:構文のbodyの前の引数の数,
-                              //                      =-1000:特殊パターン(define/hash-table))
+                              //                      =-1000:特殊パターン(define/hash-table等))
                               //   pr.quote_flag   クォートフラグ(boolean)
                               //   pr.paren_last   括弧モードの処理済みチェック用
                               //   pr.scmt_count   S式コメントカウンタ
                               //   pr.line_start   行頭フラグ(bodyの先頭が行頭にないときの対応用)(boolean)
-                              //   pr.let_flag     letフラグ(名前付きletの対応用)(boolean)
-                              //   pr.proc_flag    手続き識別フラグ(boolean)
+                              //   pr.proc_flag    手続きフラグ(boolean)
+                              //   pr.proc_name    手続き名
                               //
         var paren_stack = []; // 括弧情報のスタック(配列)
         var paren_no;         // 括弧番号(1オリジン)
@@ -472,8 +476,8 @@ var SCIndent;
         pr.paren_last  = 0;
         pr.scmt_count  = 0;
         pr.line_start  = false;
-        pr.let_flag    = false;
         pr.proc_flag   = false;
+        pr.proc_name   = "";
         paren_stack = [];
         paren_no = 1;
         token_len = token.length;
@@ -534,8 +538,8 @@ var SCIndent;
                     pr.paren_last  = 0;
                     pr.scmt_count  = 0;
                     pr.line_start  = false;
-                    pr.let_flag    = false;
                     pr.proc_flag   = false;
+                    pr.proc_name   = "";
                     // ***** 括弧番号の設定 *****
                     token[i].paren_no = paren_no;
                     paren_no++;
@@ -591,31 +595,26 @@ var SCIndent;
                         pr.paren_mode++;
                         pr.line_start = token[i].line_start;
                     }
-                    // ***** 開き括弧後の先頭の要素のとき *****
-                    if (pr.paren_mode == 2 && !pr.quote_flag) {
+                    // ***** 手続きのとき *****
+                    if (token[pr.i].word.length == 1 && pr.paren_mode == 2 && !pr.quote_flag) {
+                        // ***** 手続きフラグON *****
+                        pr.proc_flag = true;
+                        pr.proc_name = token[i].word;
                         // ***** 構文キーワードのとき *****
-                        wd = token[i].word;
-                        if (hasOwn.call(keyword_table, wd)) {
-                            pr.keyword_val = keyword_table[wd];
+                        if (hasOwn.call(keyword_table, pr.proc_name)) {
+                            pr.keyword_val = keyword_table[pr.proc_name];
                         }
                         // ***** defineのとき *****
                         // (defineで始まるものは無条件にキーワードとする)
-                        if (wd.substring(0, 6) == "define") {
+                        if (pr.proc_name.substring(0, 6) == "define") {
                             pr.keyword_val = -1000;
                         }
-                        // ***** letのとき *****
-                        if (wd == "let") {
-                            pr.let_flag = true;
-                        }
                     }
-                    // ***** 名前付きletのとき *****
-                    if (pr.let_flag && pr.paren_mode == 3 && !pr.quote_flag) {
-                        pr.let_flag = false;
-                        pr.keyword_val = 2;
-                    }
-                    // ***** 手続きのとき *****
-                    if (token[pr.i].word.length == 1 && pr.paren_mode == 2) {
-                        pr.proc_flag = true;
+                    // ***** 名前付きlet等のとき *****
+                    if ((pr.proc_name == "let" || pr.proc_name == "match-let" || pr.proc_name == "syntax-rules") &&
+                        pr.paren_mode == 3 && !pr.quote_flag) {
+                        // ***** 引数の数を1個増やす *****
+                        pr.keyword_val++;
                     }
                     // ***** クォートフラグOFF *****
                     pr.quote_flag = false;
@@ -657,7 +656,7 @@ var SCIndent;
                             }
                         }
                         pr.paren_last = pr.paren_mode;
-                    // ***** 構文キーワードあり(define/hash-table)のとき *****
+                    // ***** 構文キーワードあり(define/hash-table等)のとき *****
                     } else if (pr.keyword_val == -1000) {
                         pr.indent_now = pr.column_base + tab_size;
                     // ***** 構文キーワードなしのとき *****
@@ -1038,30 +1037,30 @@ var SCIndent;
 <body class="main_container">
 
 <form action="#" onsubmit="convert_button(); return false;">
-<table width="95%"><tr>
-<th align="center" colspan="3">SCIndent</th>
+<table style="width: 95%;"><tr>
+<td colspan="3" style="text-align: center;">SCIndent</td>
 </tr><tr>
-<th align="left" valign="top">src:</th>
-<th align="left" width="95%"><textarea id="src_text1" cols="40" rows="10" style="width: 100%;"></textarea></th>
-<th></th>
+<td style="vertical-align: top;">src:</td>
+<td style="width: 95%;"><textarea id="src_text1" cols="40" rows="10" style="width: 100%;"></textarea></td>
+<td></td>
 </tr><tr>
-<th></th>
-<th align="left"><input type="submit" value="convert"> &nbsp;
+<td></td>
+<td><input type="submit" value="convert"> &nbsp;
 <input type="button" value="clear" onclick="clear_button();"> &nbsp;
 initial indent : <input type="text" id="init_indent" value="0" style="width: 50px;"> &nbsp;
-<input type="checkbox" id="show_color" checked>color &nbsp;
-<input type="checkbox" id="show_paren_no">paren no.</th>
-<th></th>
+<input type="checkbox" id="show_color" value="1" checked>color &nbsp;
+<input type="checkbox" id="show_paren_no" value="1">paren no.</td>
+<td></td>
 </tr><tr>
-<th align="left" valign="top">out:</th>
-<th align="left" width="95%"><textarea id="out_text1" cols="40" rows="10" style="width: 100%;"></textarea></th>
-<th></th>
+<td style="vertical-align: top;">out:</td>
+<td style="width: 95%;"><textarea id="out_text1" cols="40" rows="10" style="width: 100%;"></textarea></td>
+<td></td>
 </tr><tr>
-<th></th>
-<th align="left"><input type="button" value="sample1" onclick="sample_button(0);">
+<td></td>
+<td><input type="button" value="sample1" onclick="sample_button(0);">
 <input type="button" value="sample2" onclick="sample_button(1);">
-<input type="button" value="sample3" onclick="sample_button(2);"></th>
-<th></th>
+<input type="button" value="sample3" onclick="sample_button(2);"></td>
+<td></td>
 </tr></table>
 <div id="no_change" style="display: none;"><br><b>[ no change ]</b></div>
 <pre><span id="debug_show1"></span></pre>

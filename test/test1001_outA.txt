@@ -1,25 +1,29 @@
+;; ===== sanitize test =====
+;<b>1000</b>
+
+;; ===== preparation =====
 (define-reader-ctor 'pi (lambda () (* (atan 1) 4)))
 
-;; ===== コメント =====
-;  コメント
-#! コメント
-#| コメント
-コメント |#
-#| #|コメント|#
-コメント |#
-#;"コメント"
+;; ===== comment =====
+;  abcde
+#! abcde
+#| abcde
+abcde |#
+#| #|abcde|#
+abcde |#
+#;"abcde"
 
 (print "abc"
-       ;  コメント
-       #! コメント
-#| コメント
-コメント |#
-#| #|コメント|#
-コメント |#
-       #;"コメント"
+       ;  abcde
+       #! abcde
+#| abcde
+abcde |#
+#| #|abcde|#
+abcde |#
+       #;"abcde"
        )
 
-;; ===== リテラル =====
+;; ===== literal =====
 (+ 1 2 3)
 [+ 1 2 3]
 {+ 1 2 3}
@@ -78,7 +82,7 @@
        #,(pi)
        )
 
-;; ===== 構文キーワード =====
+;; ===== keyword =====
 (begin (+ 1)
        (+ 2)
        (+ 3)
@@ -137,7 +141,7 @@
       (else
        'equal))
 
-;; ===== リテラル中の改行 =====
+;; ===== newline in literal =====
 (print "abc
 def"
        10
@@ -156,7 +160,7 @@ def"
 #(1 2 3
   4 5 6)
 
-;; ===== 構文中のS式コメント =====
+;; ===== S-comment in do =====
 (do #;((i 1 (+ i 1)))
     ((i 1 (+ i 1)))
     ((>= i 10) #f)
@@ -167,7 +171,7 @@ def"
     ((>= i 10) #f)
   (print i))
 
-;; ===== リテラル内の空白 =====
+;; ===== space in literal =====
 (if "a b c"
   2
   3
@@ -193,13 +197,60 @@ def"
   3
   )
 
-;; ===== 文字リテラル =====
+;; ===== char literal =====
 '(#\| #\( #\) #\" #\;
   #\[ #\] #\{ #\}
   #\\ #\#
   #\space #\return)
 
-;; ===== デリミタ =====
+;; ===== delimiter =====
 (+ 1    2
    3)'|abc|"abc"[+ 1 2 3]{+ 1 2 3};abc
+
+;; ===== others =====
+(define x
+  10000)
+
+(hash-table
+  'eq
+  '(a . 1)
+  '(b . 2)
+  '(c . 3))
+
+(hash-table 'eq
+  '(a . 1)
+  '(b . 2)
+  '(c . 3))
+
+(let ((x 1)
+      (y 2))
+  (print x y))
+
+(let
+    ((x 1)
+     (y 2))
+  (print x y))
+
+(let loop ((x 1)
+           (y 2))
+  (print x y))
+
+(let loop
+    ((x 1)
+     (y 2))
+  (print x y))
+
+(define-syntax s
+  (syntax-rules ()
+    ((_ x)
+     (print x))
+    ((_ x y)
+     (print x y))))
+
+(define-syntax s
+  (syntax-rules xxx ()
+    ((_ x)
+     (print x))
+    ((_ x y)
+     (print x y))))
 
