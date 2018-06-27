@@ -147,6 +147,7 @@
 - 2018-6-26  v1.60 HTML見直し  
   構文キーワード追加(match-let,match-let*,match-letrec)  
   syntax-rulesのellipsis指定に対応
+- 2018-6-27  v1.61 HTML出力見直し(IE8対策)
 
 
-(2018-6-26)
+(2018-6-27)
