@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2018-6-27 v1.61
+    2018-6-30 v1.62
 -->
 <style type="text/css">
 <!--
@@ -1052,8 +1052,8 @@ var SCIndent;
 <td><input type="submit" value="convert"> &nbsp;
 <input type="button" value="clear" onclick="clear_button();"> &nbsp;
 initial indent : <input type="text" id="init_indent" value="0" style="width: 50px;"> &nbsp;
-<input type="checkbox" id="show_color" value="1" checked>color &nbsp;
-<input type="checkbox" id="show_paren_no" value="1">paren no.</td>
+<input type="checkbox" id="show_color" checked>color &nbsp;
+<input type="checkbox" id="show_paren_no">paren no.</td>
 <td></td>
 </tr><tr>
 <td style="vertical-align: top;">out:</td>
@@ -1066,7 +1066,7 @@ initial indent : <input type="text" id="init_indent" value="0" style="width: 50p
 <input type="button" value="sample3" onclick="sample_button(2);"></td>
 <td></td>
 </tr></table>
-<div id="no_change" style="display: none;"><br><b>[ no change ]</b></div>
+<div id="no_change" style="margin-top: 10px; display: none;"><b>[ no change ]</b></div>
 <pre><span id="debug_show1"></span></pre>
 <pre><span id="result_show1"></span></pre>
 </form>
