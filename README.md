@@ -87,7 +87,7 @@
 - OS
   - Windows 8.1 (64bit)
 - ブラウザ
-  - Chrome v67
+  - Chrome v74
 
 ## 履歴
 - 2015-1-6   v1.00 (初版)
@@ -149,6 +149,7 @@
   syntax-rulesのellipsis指定に対応
 - 2018-6-27  v1.61 HTML出力見直し(IE8対策)
 - 2018-6-30  v1.62 HTML見直し
+- 2019-5-7   v1.63 構文キーワード追加(quasirename,with-ports)
 
 
-(2018-6-30)
+(2019-5-7)
