@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2019-5-7 v1.63
+    2020-3-31 v1.64
 -->
 <style type="text/css">
 <!--
@@ -153,6 +153,41 @@ var SCIndent;
     var tab_char_size = 4; // タブ文字幅
     var keyword_table = {  // 構文キーワード
                            //   (値は構文のbodyの前の引数の数(負の数は特殊パターン))
+        // == part 0 ==
+        "use":0,
+        "import":0,
+        "select-module":0,
+        //"cond":0,
+        //"cond-expand":0,
+        //"list":0,
+        //"vector":0,
+        //"set!":0,
+        //"eq?":0,
+        //"eqv?":0,
+        //"equal?":0,
+        //"and":0,
+        //"or":0,
+        //"not":0,
+        //"print":0,
+        //"display":0,
+        //"format":0,
+        //"newline":0,
+        //"flush":0,
+        //"read":0,
+        //"read-line":0,
+        //"write":0,
+        //"apply":0,
+        //"eval":0,
+        //"exit":0,
+        //"call-with-current-continuation":0,
+        //"call/cc":0,
+        //"raise":0,
+        //"map":0,
+        //"for-each":0,
+        "case-lambda":0,
+        //"er-macro-transformer":0,
+
+        // == part 1 ==
         "begin":0,
         "case":1,
         // (defineで始まるものは無条件にキーワードとする)
@@ -175,6 +210,7 @@ var SCIndent;
         "with-input-from-file":1,
         "with-output-to-file":1,
 
+        // == part 2 ==
         // Gauche (追加分)
         // (defineで始まるものは無条件にキーワードとする)
         // "define-class":-1000,
@@ -203,6 +239,7 @@ var SCIndent;
         "unwind-protect":1,
         "with-ports":3,
 
+        // == part 3 ==
         // Gauche (http://karetta.jp/book-node/gauche-hacks/004682)
         "and-let*":1,
         "begin0":0,
