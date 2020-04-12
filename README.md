@@ -151,6 +151,7 @@
 - 2018-6-30  v1.62 HTML見直し
 - 2019-5-7   v1.63 構文キーワード追加(quasirename,with-ports)
 - 2020-3-31  v1.64 構文キーワード追加(use,import,select-module,case-lambda)
+- 2020-4-12  v1.65 コメント修正のみ
 
 
-(2020-3-31)
+(2020-4-12)

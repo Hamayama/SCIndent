@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2020-3-31 v1.64
+    2020-4-12 v1.65
 -->
 <style type="text/css">
 <!--
@@ -152,40 +152,43 @@ var SCIndent;
     var tab_size = 2;      // タブ幅
     var tab_char_size = 4; // タブ文字幅
     var keyword_table = {  // 構文キーワード
-                           //   (値は構文のbodyの前の引数の数(負の数は特殊パターン))
+                           //   (値は構文のbodyの前の引数の数
+                           //    ( -1 にすると、構文キーワードとは認識しない
+                           //      -1 以外の負の数は、特殊パターン用))
         // == part 0 ==
         "use":0,
         "import":0,
         "select-module":0,
-        //"cond":0,
-        //"cond-expand":0,
-        //"list":0,
-        //"vector":0,
-        //"set!":0,
-        //"eq?":0,
-        //"eqv?":0,
-        //"equal?":0,
-        //"and":0,
-        //"or":0,
-        //"not":0,
-        //"print":0,
-        //"display":0,
-        //"format":0,
-        //"newline":0,
-        //"flush":0,
-        //"read":0,
-        //"read-line":0,
-        //"write":0,
-        //"apply":0,
-        //"eval":0,
-        //"exit":0,
-        //"call-with-current-continuation":0,
-        //"call/cc":0,
-        //"raise":0,
-        //"map":0,
-        //"for-each":0,
+        // (インデント処理が不要なものはコメントアウト)
+        // "cond":-1,
+        // "cond-expand":-1,
+        // "list":-1,
+        // "vector":-1,
+        // "set!":-1,
+        // "eq?":-1,
+        // "eqv?":-1,
+        // "equal?":-1,
+        // "and":-1,
+        // "or":-1,
+        // "not":-1,
+        // "print":-1,
+        // "display":-1,
+        // "format":-1,
+        // "newline":-1,
+        // "flush":-1,
+        // "read":-1,
+        // "read-line":-1,
+        // "write":-1,
+        // "apply":-1,
+        // "eval":-1,
+        // "exit":-1,
+        // "call-with-current-continuation":-1,
+        // "call/cc":-1,
+        // "raise":-1,
+        // "map":-1,
+        // "for-each":-1,
         "case-lambda":0,
-        //"er-macro-transformer":0,
+        // "er-macro-transformer":-1,
 
         // == part 1 ==
         "begin":0,
