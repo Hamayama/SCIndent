@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2020-4-12 v1.65
+    2020-12-8 v1.66
 -->
 <style type="text/css">
 <!--
@@ -655,6 +655,13 @@ var SCIndent;
                         if (pr.proc_name.substring(0, 6) == "define") {
                             pr.keyword_val = -1000;
                         }
+                        // ***** 正規表現のとき *****
+                        // (手続きから除外する(rxmatch-caseの対応用))
+                        if (pr.proc_name.substring(0, 2) == "#/") {
+                            pr.proc_flag = false;
+                            pr.proc_name = "";
+                            pr.keyword_val = -1;
+                        }
                     }
                     // ***** 名前付きlet等のとき *****
                     if ((pr.proc_name == "let" || pr.proc_name == "match-let" || pr.proc_name == "syntax-rules") &&
@@ -678,12 +685,15 @@ var SCIndent;
                 pr.indent_now = pr.column_base + token[pr.i].word.length;
             // ***** 開き括弧後のとき *****
             } else if (pr.paren_mode >= 2) {
+                // ***** 処理済みであれば何もしない(クォートの場合等) *****
+                if (pr.paren_last >= pr.paren_mode) {
+                    // ***** NOP *****
                 // ***** 手続きのとき *****
-                if (pr.proc_flag) {
+                } else if (pr.proc_flag) {
                     // ***** 構文キーワードありのとき *****
                     if (pr.keyword_val >= 0) {
                         // ***** 開き括弧後から2番目の要素までのとき *****
-                        if (pr.paren_mode <= 3 && pr.paren_last < pr.paren_mode) {
+                        if (pr.paren_mode <= 3) {
                             pr.indent_now2 = pr.column_now;
                         }
                         // ***** 構文の引数の最後-1までのとき *****
@@ -694,33 +704,32 @@ var SCIndent;
                             pr.indent_now = pr.column_base + tab_size;
                         // ***** 構文のbodyの先頭のとき *****
                         // (行頭でないときに動作を切り替える)
-                        } else if (pr.paren_mode == pr.keyword_val + 3 && pr.paren_last < pr.paren_mode) {
+                        } else if (pr.paren_mode == pr.keyword_val + 3) {
                             if (!pr.line_start) {
                                 pr.indent_now = pr.indent_now2;
                             } else {
                                 pr.indent_now = pr.column_base + tab_size;
                             }
                         }
-                        pr.paren_last = pr.paren_mode;
                     // ***** 構文キーワードあり(define/hash-table等)のとき *****
                     } else if (pr.keyword_val == -1000) {
                         pr.indent_now = pr.column_base + tab_size;
                     // ***** 構文キーワードなしのとき *****
                     } else {
                         // ***** 開き括弧後から2番目の要素までのとき *****
-                        if (pr.paren_mode <= 3 && pr.paren_last < pr.paren_mode) {
+                        if (pr.paren_mode <= 3) {
                             pr.indent_now = pr.column_now;
-                            pr.paren_last = pr.paren_mode;
                         }
                     }
                 // ***** 手続き以外のとき *****
                 } else {
                     // ***** 開き括弧後から先頭の要素までのとき *****
-                    if (pr.paren_mode <= 2 && pr.paren_last < pr.paren_mode) {
+                    if (pr.paren_mode <= 2) {
                         pr.indent_now = pr.column_now;
-                        pr.paren_last = pr.paren_mode;
                     }
                 }
+                // ***** 処理済みの位置を更新 *****
+                pr.paren_last = pr.paren_mode;
             }
 
         }
@@ -1043,7 +1052,7 @@ var SCIndent;
         while (true) {
             if (count & 1) { result_st += add_st; }
             count >>= 1;
-            if (count) { add_st += add_st; } else { break; }
+            if (count > 0) { add_st += add_st; } else { break; }
         }
         return result_st;
     }

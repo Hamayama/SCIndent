@@ -85,9 +85,9 @@
 
 ## 環境等
 - OS
-  - Windows 8.1 (64bit)
+  - Windows 10 (version 1909) (64bit)
 - ブラウザ
-  - Chrome v80
+  - Chrome v87
 
 ## 履歴
 - 2015-1-6   v1.00 (初版)
@@ -152,6 +152,7 @@
 - 2019-5-7   v1.63 構文キーワード追加(quasirename,with-ports)
 - 2020-3-31  v1.64 構文キーワード追加(use,import,select-module,case-lambda)
 - 2020-4-12  v1.65 コメント修正のみ
+- 2020-12-8  v1.66 正規表現の処理見直し等
 
 
-(2020-4-12)
+(2020-12-8)
