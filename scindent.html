@@ -5,7 +5,7 @@
 <title>SCIndent</title>
 <!--
     scindent.html
-    2020-12-8 v1.66
+    2024-10-14 v1.67
 -->
 <style type="text/css">
 <!--
@@ -745,6 +745,7 @@ var SCIndent;
         var line_no;      // 行番号(1オリジン)
         var line_no_tk;   // トークン開始時点の行番号
         var before_space; // 前方の空白数
+        var column_now;   // 現在行の文字数
         var uvector_mode; // ユニフォームベクタ解析モード
         var comment_nest; // 複数行コメントのネスト数
         var delim_ch;     // デリミタ文字
@@ -765,6 +766,7 @@ var SCIndent;
             // ***** フラグ等更新 *****
             line_start = false;
             before_space = 0;
+            column_now += tk.word.length;
         }
 
         // ***** トークン分割 *****
@@ -773,6 +775,7 @@ var SCIndent;
         line_start = true;
         line_no = 1;
         before_space = 0;
+        column_now = 0;
         src_st_len = src_st.length;
         while (i < src_st_len) {
             // ***** 開始情報更新 *****
@@ -782,15 +785,24 @@ var SCIndent;
             ch = src_st.charAt(i++);
             ch2 = src_st.charAt(i);
             // ***** 空白のとき *****
-            if (ch == " ") { before_space++; continue; }
+            if (ch == " ") {
+                before_space++;
+                column_now++;
+                continue;
+            }
             // ***** タブのとき *****
-            if (ch == "\t") { before_space += tab_char_size; continue; }
+            if (ch == "\t") {
+                before_space += tab_char_size - (column_now % tab_char_size);
+                column_now   += tab_char_size - (column_now % tab_char_size);
+                continue;
+            }
             // ***** 改行のとき *****
             if (ch == "\r" || ch == "\n") {
                 line_no++;
                 if (ch == "\r" && ch2 == "\n") { i++; }
                 token_push(0);
                 line_start = true;
+                column_now = 0;
                 continue;
             }
             // ***** 開き括弧のとき *****
